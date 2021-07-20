@@ -9,7 +9,7 @@ import numpy as np
 from scipy.integrate import solve_bvp
 import matplotlib.pyplot as plt
 # from matplotlib import rc
-
+from PlottingWidgetAMPA import *
 L = 221     #length of the dendrite
 
 class SingleProteinModelWihtSpines():
@@ -61,56 +61,10 @@ class SingleProteinModelWihtSpines():
         x_label = r'Dendritic distance in ($\mu$M)';
         y_label= r'Protein number';
         file_name = "SingleProtein_MultiSim_{0}".format(sim_id);
-        self.PlotSingleSim(x, p_dist, lab, x_label, y_label, title_string, file_name)
+        pwa = PlottingWidgetAMPA()
+        pwa.PlotSingleSimSingleProtein(x, p_dist, lab, x_label, y_label, title_string, file_name)
         # self.PlotMultipleSim( y, y, np.array([lab,lab]), x_label, y_label, title_string, file_name)
     # def SolveMultiModel(self,D_p_arr)
-    def PlotSingleSim(self,x,y,lab,xlab,ylab,title_string,file_name,width=8,height=8,fsize=16,save_it = 1):
-        fig, ax = plt.subplots(figsize=(width, height))
-        plt.rc('font', **{'family':'serif','serif':['Palatino']})
-        plt.rc('text', usetex=True)
-        ax.plot(x,y,label=lab)
-        ax.set_xlabel(xlab,fontsize=fsize)
-        ax.set_ylabel(ylab,fontsize=fsize)
-        plt.title(title_string,fontsize=fsize)
-        plt.legend()
-        # plt.show()
-        folder = "."
-        if save_it == 1:
-            plt.savefig("%s/%s.%s"%(folder,file_name,"png"),dpi=150)
-            plt.savefig("%s/%s.%s"%(folder,file_name,"eps"),dpi=150)
-            print("saved figures to: {%s/%s}" %(folder, file_name))
-        else:
-            print("Plots not saved")
-        plt.show()
-    
-    
-    def PlotMultipleSim(self,x,y,lab,xlab,ylab,title_string,file_name,width=8,height=8,fsize=16,save_it = 1):
-        # plotting multiple simulations
-        # useful when trying single parameter manipulations
-        
-        if x.shape != y.shape:
-            print("data shapes are not equal x is of size ", x.shape , "and y is of size ",y.shape )
-        else:
-            fig, ax = plt.subplots(figsize=(width, height))
-            plt.rc('font', **{'family':'serif','serif':['Palatino']})
-            plt.rc('text', usetex=True)
-            y_shape = y.shape
-            print(y_shape[0])
-            for i in range(0,y_shape[0]):
-                ax.plot(x[i],y[i],label=lab[i])
-            ax.set_xlabel(xlab,fontsize=fsize)
-            ax.set_ylabel(ylab,fontsize=fsize)
-            plt.title(title_string,fontsize=fsize)
-            plt.legend()
-            # plt.show()
-            folder = "."
-            if save_it == 1:
-                plt.savefig("%s/%s.%s"%(folder,file_name,"png"),dpi=150)
-                plt.savefig("%s/%s.%s"%(folder,file_name,"eps"),dpi=150)
-                print("saved figures to: {%s/%s}" %(folder, file_name))
-            else:
-                print("Plots not saved")
-            plt.show()
         
     
 if __name__ == '__main__':

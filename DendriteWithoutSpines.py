@@ -8,7 +8,7 @@ Created on Fri Jul  9 11:52:04 2021
 import numpy as np
 from scipy.integrate import solve_bvp
 import matplotlib.pyplot as plt
-
+from PlottingWidgetAMPA import *
 L = 221;    #lenght of the dendrite
 class DendriteWithoutSpines():
     def __init__(self,D_s,D_c,V_p,half_life_surf,half_life_int,alpha,beta,Jsin,Jcin):
@@ -85,27 +85,9 @@ class DendriteWithoutSpines():
         x_label = r'Dendritic distance in ($\mu$M)';
         y_label= r'Protein number';
         file_name = "TwoProtein_SingleSim_withoutSpines_{0}".format(sim_id);
-        self.PlotSingleSim(x, ps_dist,pc_dist, lab_ps,lab_pc, x_label, y_label, title_string, file_name,fsize=14,save_it = 1)
+        pwa = PlottingWidgetAMPA()
+        pwa.PlotSingleSimTwoProtein(x, ps_dist,pc_dist, lab_ps,lab_pc, x_label, y_label, title_string, file_name,fsize=14,save_it = 1)
 
-    def PlotSingleSim(self,x,ps,pc,lab_ps,lab_pc,xlab,ylab,title_string,file_name,width=8,height=8,fsize=16,save_it = 1):
-        fig, ax = plt.subplots(figsize=(width, height))
-        plt.rc('font', **{'family':'serif','serif':['Palatino']})
-        plt.rc('text', usetex=True)
-        ax.plot(x,ps,label=lab_ps)
-        ax.plot(x,pc,label=lab_pc)
-        ax.set_xlabel(xlab,fontsize=fsize)
-        ax.set_ylabel(ylab,fontsize=fsize)
-        plt.title(title_string,fontsize=fsize)
-        plt.legend()
-        # plt.show()
-        folder = "."
-        if save_it == 1:
-            plt.savefig("%s/%s.%s"%(folder,file_name,"png"),dpi=150)
-            plt.savefig("%s/%s.%s"%(folder,file_name,"eps"),dpi=150)
-            print("saved figures to: {%s/%s}" %(folder, file_name))
-        else:
-            print("Plots not saved")
-        plt.show()
 if __name__ == '__main__':
     SP_model1 = DendriteWithoutSpines(0.45,0.05,0.0001,float('inf'),4.35,0.1,0.2,0.0,0.1);
     SP_model1.solveModel("003")
