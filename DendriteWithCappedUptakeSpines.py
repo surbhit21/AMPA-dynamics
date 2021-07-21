@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Mon Jul 12 15:29:23 2021
+Created on Wed Jul 21 14:51:48 2021
 
 @author: surbhitwagle
 """
@@ -11,8 +11,8 @@ from scipy.integrate import solve_bvp
 import matplotlib.pyplot as plt
 from PlottingWidgetAMPA import *
 L = 221;    #lenght of the dendrite
-class DendriteWithSpines():
-    def __init__(self,D_s,D_c,V_p,half_life_surf,half_life_int,alpha,beta,Jsin,Jcin,eta_s,eta_c):
+class DendriteWithCappedUptakeSpines():
+    def __init__(self,D_s,D_c,V_p,half_life_surf,half_life_int,alpha,beta,Jsin,Jcin,eta_s_max,eta_c_max,eta_s_zero,eta_c_zero):
         self.D_s = D_s   # in uM^2/s
         self.D_c = D_c   # in uM^2/s
         self.V_p = V_p    # in uM/s
@@ -24,8 +24,10 @@ class DendriteWithSpines():
         self.beta = beta;
         self.Jsin = Jsin;
         self.Jcin = Jcin;
-        self.eta_s = eta_s;
-        self.eta_c = eta_c;
+        self.eta_s_max = eta_s_max;
+        self.eta_c_max = eta_c_max;
+        self.eta_s_zero = eta_s_zero;
+        self.eta_c_zero = eta_c_zero;
         
     def updateModelParams(self,D_s = None,D_c = None,V_p = None,half_life_surf = None,half_life_int = None\
                           ,alpha = None,beta = None,Jsin = None,Jcin = None,eta_s = None,eta_c = None):
@@ -49,17 +51,22 @@ class DendriteWithSpines():
             self.Jsin = Jsin;
         if Jcin:
             self.Jcin = Jcin;
-        if eta_s:
-            self.eta_s = eta_s;
-        if eta_c:
-            self.eta_c = eta_c;
+        if eta_s_max:
+            self.eta_s_max = eta_s_max;
+        if eta_c_max:
+            self.eta_c_max = eta_c_max;
+        if eta_s_zero:
+            self.eta_s_zero = eta_s_zero;
+        if eta_c_zero:
+            self.eta_c_zero = eta_c_zero;
     
     def fun(self,x,y):
         ps,dps,pc,dpc = y
         return [dps,\
-                ((self.alpha+self.Lamda_ps+self.eta_s)/self.D_s)*ps - (self.beta/self.D_s)*pc,\
+                ((self.alpha+self.Lamda_ps)/self.D_s)*ps + self.eta_s_max*np.tanh(self.eta_s_zero*ps)- (self.beta/self.D_s)*pc,\
                     dpc,\
-                        ((self.beta+self.Lamda_pc+self.eta_c)/self.D_c - self.V_p/(self.D_c*L))*pc + (self.V_p*(1-x/L)/self.D_c)*dpc - (self.alpha/self.D_c)*ps]
+                        ((self.beta+self.Lamda_pc)/self.D_c - self.V_p/(self.D_c*L))*pc + self.eta_c_max*np.tanh(self.eta_c_zero*pc) \
+                            + (self.V_p*(1-x/L)/self.D_c)*dpc - (self.alpha/self.D_c)*ps]
         
     def bc(self,ya,yb):
         return np.array([self.D_s*ya[1] + self.Jsin, self.D_s*yb[1], self.D_c*ya[3] - self.V_p*ya[2] + self.Jcin, self.D_c*yb[3]])
@@ -85,30 +92,30 @@ class DendriteWithSpines():
         # plt.plot(x,pc_dist,label='P_c')
         # plt.show()
         title_string = (r"Steady-state spatial distribution"+" \n parameters:\
-           "+r" $D_s$ = %.2f, half-life-surf = %.2f, $Jsin= %.2f,  \alpha = %.2f, \eta_s$ = %.1e "+" \n"+ \
-            r"$D_c = {%.2f}, V_p = {%.1e}$, half-life-int = %.2f, $Jcin= %.2f, \beta = %.2f, \eta_c$ = %.1e") \
-        %( self.D_s, self.half_life_surf,self.Jsin,self.alpha,self.eta_s,\
-          self.D_c,self.V_p, self.half_life_int,self.Jcin,self.beta,self.eta_c);
+           "+r" $D_s$ = %.2f, half-life-surf = %.2f, $Jsin= %.2f,  \alpha = %.2f, \eta_{smax} = %.1e ,\eta_{c0}$ = %.1e"+" \n"+ \
+            r"$D_c = {%.2f}, V_p = {%.1e}$, half-life-int = %.2f, $Jcin= %.2f, \beta = %.2f, \eta_{cmax} = %.1e,\eta_{c0}$ = %.1e") \
+        %( self.D_s, self.half_life_surf,self.Jsin,self.alpha,self.eta_s_max,self.eta_s_zero,\
+          self.D_c,self.V_p, self.half_life_int,self.Jcin,self.beta,self.eta_c_max,self.eta_c_zero);
         lab_ps =  'Surf-AMPA-R'
         lab_pc =  'Int-AMPA-R'
         x_label = r'Dendritic distance in ($\mu$M)';
         y_label= r'Protein number';
-        file_name = "Figures/TwoProtein_SingleSim_withSpines_{0}".format(sim_id);
+        file_name = "Figures/TwoProtein_SingleSim_withCappedSpinesUptake_{0}".format(sim_id);
         pwa = PlottingWidgetAMPA()
         pwa.PlotSingleSimTwoProtein(x, ps_dist,pc_dist, lab_ps,lab_pc, x_label, y_label, title_string, file_name,fsize=14,save_it = 1)
-        title_string = (r"Steady-state spatial distribution in spines"+" \n parameters:\
-           "+r" $D_s$ = %.2f, half-life-surf = %.2f, $Jsin= %.2f,  \alpha = %.2f, \eta_s$ = %.1e "+" \n"+ \
-            r"$D_c = {%.2f}, V_p = {%.1e}$, half-life-int = %.2f, $Jcin= %.2f, \beta = %.2f, \eta_c$ = %.1e") \
-        %( self.D_s, self.half_life_surf,self.Jsin,self.alpha,self.eta_s,\
-          self.D_c,self.V_p, self.half_life_int,self.Jcin,self.beta,self.eta_c);
+        title_string = (r"Steady-state spatial distribution in Spines"+" \n parameters:\
+           "+r" $D_s$ = %.2f, half-life-surf = %.2f, $Jsin= %.2f,  \alpha = %.2f, \eta_{smax} = %.1e ,\eta_{s0}$ = %.1e"+" \n"+ \
+            r"$D_c = {%.2f}, V_p = {%.1e}$, half-life-int = %.2f, $Jcin= %.2f, \beta = %.2f, \eta_{cmax} = %.1e,\eta_{c0}$ = %.1e") \
+        %( self.D_s, self.half_life_surf,self.Jsin,self.alpha,self.eta_s_max,self.eta_s_zero,\
+          self.D_c,self.V_p, self.half_life_int,self.Jcin,self.beta,self.eta_c_max,self.eta_c_zero);
         lab_p_spine =  'Spine-AMPA-R'
         x_label = r'Dendritic distance in ($\mu$M)';
         y_label= r'Protein number';
-        file_name = "Figures/Spine_SingleSim_TwoProtein_dist_{0}".format(sim_id);
-        p_spine = self.eta_s*ps_dist + self.eta_c*pc_dist;
+        file_name = "Figures/Spine_SingleSim_TwoProtein_capped_uptake_dist_{0}".format(sim_id);
+        p_spine = self.eta_s_max*np.tanh(self.eta_s_zero*ps_dist) + self.eta_c_max*np.tanh(self.eta_c_zero*pc_dist);
         pwa.PlotSingleSimSingleProtein(x, p_spine, lab_p_spine, x_label, y_label, title_string, file_name,fsize=14,save_it = 1)
 if __name__ == '__main__':
-    SP_model1 = DendriteWithSpines(0.45,0.05,0.1,float('inf'),4.35,0.1,0.2,0.0,0.1,0.0001,0.0006);
+    SP_model1 = DendriteWithCappedUptakeSpines(0.45,0.05,0.1,float('inf'),4.35,0.1,0.2,0.0,0.1,0.0001,0.0006,0.1,0.1);
     SP_model1.solveModel("001")
     
     
