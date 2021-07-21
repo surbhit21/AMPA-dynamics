@@ -60,11 +60,18 @@ class SingleProteinModelWihtSpines():
         lab =  'AMPA-R'
         x_label = r'Dendritic distance in ($\mu$M)';
         y_label= r'Protein number';
-        file_name = "SingleProtein_MultiSim_{0}".format(sim_id);
+        file_name = "Figures/SingleProtein_MultiSim_{0}".format(sim_id);
         pwa = PlottingWidgetAMPA()
         pwa.PlotSingleSimSingleProtein(x, p_dist, lab, x_label, y_label, title_string, file_name)
-        # self.PlotMultipleSim( y, y, np.array([lab,lab]), x_label, y_label, title_string, file_name)
-    # def SolveMultiModel(self,D_p_arr)
+        
+        title_string = "Steady-state spatial distribution in Spines\n parameters: $D_p = {%.2f}, V_p = {%.1e}$, half-life = %.2f, Jin= %.2f, $\eta_p$ =%.1e" \
+        %( self.D_p, self.V_p, self.half_life,self.Jin,self.eta_p);
+        lab_p_spine =  'Spine-AMPA-R'
+        x_label = r'Dendritic distance in ($\mu$M)';
+        y_label= r'Protein number';
+        file_name = "Figures/Spine_SingleSim_OneProtein_dist_{0}".format(sim_id);
+        p_spine = self.eta_p*p_dist;
+        pwa.PlotSingleSimSingleProtein(x, p_spine, lab_p_spine, x_label, y_label, title_string, file_name,fsize=14,save_it = 1)
         
     
 if __name__ == '__main__':

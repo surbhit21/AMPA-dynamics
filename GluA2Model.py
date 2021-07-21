@@ -1,25 +1,18 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Mon Jul 12 15:29:23 2021
+Created on Tue Jul 20 14:50:04 2021
 
 @author: surbhitwagle
 """
 
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Fri Jul  9 11:52:04 2021
-
-@author: surbhitwagle
-"""
 import numpy as np
 from scipy.integrate import solve_bvp
 import matplotlib.pyplot as plt
 from PlottingWidgetAMPA import *
 L = 221;    #lenght of the dendrite
-class DendriteWithSpines():
-    def __init__(self,D_s,D_c,V_p,half_life_surf,half_life_int,alpha,beta,Jsin,Jcin,eta_s,eta_c):
+class GluA2Model():
+    def __init__(self,D_s,D_c,V_p,half_life_surf,half_life_int,alpha,beta,Jsin,Jcin,eta_s,eta_c,k_c):
         self.D_s = D_s   # in uM^2/s
         self.D_c = D_c   # in uM^2/s
         self.V_p = V_p    # in uM/s
@@ -33,6 +26,7 @@ class DendriteWithSpines():
         self.Jcin = Jcin;
         self.eta_s = eta_s;
         self.eta_c = eta_c;
+        self.k_c = k_c;
         
     def updateModelParams(self,D_s = None,D_c = None,V_p = None,half_life_surf = None,half_life_int = None\
                           ,alpha = None,beta = None,Jsin = None,Jcin = None,eta_s = None,eta_c = None):
@@ -64,9 +58,9 @@ class DendriteWithSpines():
     def fun(self,x,y):
         ps,dps,pc,dpc = y
         return [dps,\
-                ((self.alpha+self.Lamda_ps+self.eta_s)/self.D_s)*ps - (self.beta/self.D_s)*pc,\
+                ((self.alpha+self.Lamda_ps+self.eta_s)/self.D_s)*ps - (self.beta*np.exp(-self.k_c*x)/self.D_s)*pc,\
                     dpc,\
-                        ((self.beta+self.Lamda_pc+self.eta_c)/self.D_c - self.V_p/(self.D_c*L))*pc + (self.V_p*(1-x/L)/self.D_c)*dpc - (self.alpha/self.D_c)*ps]
+                        ((self.beta*np.exp(-self.k_c*x)+self.Lamda_pc+self.eta_c)/self.D_c - self.V_p/(self.D_c*L))*pc + (self.V_p*(1-x/L)/self.D_c)*dpc - (self.alpha/self.D_c)*ps]
         
     def bc(self,ya,yb):
         return np.array([self.D_s*ya[1] + self.Jsin, self.D_s*yb[1], self.D_c*ya[3] - self.V_p*ya[2] + self.Jcin, self.D_c*yb[3]])
@@ -100,25 +94,10 @@ class DendriteWithSpines():
         lab_pc =  'Int-AMPA-R'
         x_label = r'Dendritic distance in ($\mu$M)';
         y_label= r'Protein number';
-        file_name = "Figures/TwoProtein_SingleSim_withSpines_{0}".format(sim_id);
+        file_name = "TwoProtein_SingleSim_withSpines_{0}".format(sim_id);
         pwa = PlottingWidgetAMPA()
-        pwa.PlotSingleSimTwoProtein(x, ps_dist,pc_dist, lab_ps,lab_pc, x_label, y_label, title_string, file_name,fsize=14,save_it = 1)
-        title_string = (r"Steady-state spatial distribution in spines"+" \n parameters:\
-           "+r" $D_s$ = %.2f, half-life-surf = %.2f, $Jsin= %.2f,  \alpha = %.2f, \eta_s$ = %.1e "+" \n"+ \
-            r"$D_c = {%.2f}, V_p = {%.1e}$, half-life-int = %.2f, $Jcin= %.2f, \beta = %.2f, \eta_c$ = %.1e") \
-        %( self.D_s, self.half_life_surf,self.Jsin,self.alpha,self.eta_s,\
-          self.D_c,self.V_p, self.half_life_int,self.Jcin,self.beta,self.eta_c);
-        lab_p_spine =  'Spine-AMPA-R'
-        x_label = r'Dendritic distance in ($\mu$M)';
-        y_label= r'Protein number';
-        file_name = "Figures/Spine_SingleSim_TwoProtein_dist_{0}".format(sim_id);
-        p_spine = self.eta_s*ps_dist + self.eta_c*pc_dist;
-        pwa.PlotSingleSimSingleProtein(x, p_spine, lab_p_spine, x_label, y_label, title_string, file_name,fsize=14,save_it = 1)
+        pwa.PlotSingleSimTwoProtein(x, ps_dist,pc_dist, lab_ps,lab_pc, x_label, y_label, title_string, file_name,fsize=14,save_it = 0)
+
 if __name__ == '__main__':
-    SP_model1 = DendriteWithSpines(0.45,0.05,0.1,float('inf'),4.35,0.1,0.2,0.0,0.1,0.0001,0.0006);
-    SP_model1.solveModel("001")
-    
-    
-    
-    
-    
+    GluA2_model1 = GluA2Model(0.45,0.05,0.1,float('inf'),4.35,0.1,0.2,0.0,0.1,0.0001,0.0006,0.001);
+    GluA2_model1.solveModel("001")
