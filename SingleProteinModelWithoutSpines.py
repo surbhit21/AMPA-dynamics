@@ -39,36 +39,102 @@ class SingleProteinModelWithoutSpines():
     def bc(self,ya,yb):
         return np.array([self.D_p*ya[1] - self.V_p*ya[0] + self.Jin, self.D_p*yb[1]])
 
-    def solveModel(self,sim_id):
+    def solveModel(self):
         delta_x = 0.0114; #step size for the numerical simulation
         # print(len(x_line))
         # solving model
         # D_p * p'' - (V_p(x)*p)' - Lamda_p*p = 0
         x=np.arange(0,L,delta_x)
-        # print(x)
-        # params=np.array([L]);
+        
         y = np.zeros((2,x.size))
         soln = solve_bvp(self.fun, self.bc, x, y)
         # print(len(soln))
         p_dist = soln.sol(x)[0]
         # norm_p_dist = p_dist/p_dist[0]
         # print(len(p_dist))
-        title_string = "Steady-state spatial distribution \n parameters: $D_p = {%.2f}, V_p = {%.1e}$, half-life = %.2f, Jin= %.2f" \
-        %( self.D_p, self.V_p, self.half_life,self.Jin);
-        lab =  'AMPA-R'
-        x_label = r'Dendritic distance in ($\mu$M)';
-        y_label= r'Protein number';
-        file_name = "SingleProtein_MultiSim_{0}".format(sim_id);
-        pwa = PlottingWidgetAMPA()
-        pwa.PlotSingleSimSingleProtein(x, p_dist, lab, x_label, y_label, title_string, file_name)
+        return np.array([x,p_dist])
         # self.PlotMultipleSim( y, y, np.array([lab,lab]), x_label, y_label, title_string, file_name)
     # # def SolveMultiModel(self,D_p_arr)
-
-
-        
+    
+    # 
+    def ParameterEffect(self,scales,D_p=None,V_p = None,half_life = None,Jin = None):
+        output = {};
+        for ind,scale in enumerate(scales):
+            current_D_p = self.D_p
+            current_V_p = self.V_p 
+            current_half_life = self.half_life
+            current_Jin = self.Jin
+            # output[ind] = SingleProteinModelWithoutSpines(self.D_p,self.V_p,self.half_life,self.Jin)
+            if D_p:
+                current_D_p *= scale
+            if V_p:
+                current_V_p *= scale
+            if half_life:
+                current_half_life *= scale
+            if Jin:
+                current_Jin *= scale
+            output[ind] = SingleProteinModelWithoutSpines(current_D_p,current_V_p,current_half_life,current_Jin)
+            print(output[ind].__dict__)
+        return output
+    
+    def IntegralBC(self):
+        total_p = self.Jin/self.Lamda_p;# + self.Jsin/self.Lamda_ps
+        x,p= self.solveModel()
+        num_total_p = (np.sum(p))*(x[1]-x[0])
+        print("total p analytic/total p numeric = ",total_p/num_total_p)
     
 if __name__ == '__main__':
     SP_model1 = SingleProteinModelWithoutSpines(0.45,0.1,4.35,0.1);
-    SP_model1.solveModel("001")
-    # SP_model1.updateModelParams(V_p=0.001);
-    # SP_model1.solveModel()
+    sim_id = "001";
+    x,p_dist = SP_model1.solveModel()
+    SP_model1.IntegralBC()
+    SP_model1.updateModelParams(V_p=0.001);
+    SP_model1.solveModel()
+    title_string = "Steady-state spatial distribution \n parameters: $D_p = {%.2f}, V_p = {%.1e}$, half-life = %.2f, Jin= %.2f" \
+        %( SP_model1.D_p, SP_model1.V_p, SP_model1.half_life,SP_model1.Jin);
+    lab =  'AMPA-R'
+    x_label = r'Dendritic distance in ($\mu$M)';
+    y_label= r'Protein number';
+    folder= "Figures/OneProtein/NoUptake/";
+    file_name = folder+"SingleProtein_SingleSim_{0}".format(sim_id);
+    pwa = PlottingWidgetAMPA()
+    pwa.CreateFolderRecursive(folder)
+    norm_type = "Max";
+    pwa.PlotSingleSimSingleProtein(x, p_dist, lab, x_label, y_label, title_string, file_name)
+    pwa.plotNormSingle(x, p_dist, lab, x_label, y_label, title_string, file_name,norm_type=norm_type)
+    
+    scales = np.array([1/5,1/2,1,2])
+    modified_objs = SP_model1.ParameterEffect(scales,V_p = 1)
+    labels =  ["Vp X {%.2f}"%(scale) for scale in scales]
+    title_string = "Effect of changing velocity of active transport";
+    all_op = np.zeros((len(scales),len(x)))
+    for ind,key in enumerate(modified_objs.keys()):
+        _,all_op[ind] = modified_objs[key].solveModel()
+    print(all_op)
+    file_name = folder+"SingleProtein_MultiSim_velocity_{0}".format(sim_id)
+    pwa.PlotMultipleSim(x, all_op,labels,x_label,y_label,title_string,file_name,save_it=1)
+    pwa.plotNormMulti(x, all_op,labels,x_label,y_label,title_string,file_name,norm_type=norm_type)
+    
+    scales = np.array([1/100,1,100,1000])
+    title_string = "Effect of changing diffusion constant";
+    modified_objs = SP_model1.ParameterEffect(scales,D_p = 1)
+    labels =  ["Dp X {%.2f}"%(scale) for scale in scales]
+    all_op = np.zeros((len(scales),len(x)))
+    for ind,key in enumerate(modified_objs.keys()):
+        _,all_op[ind] = modified_objs[key].solveModel()
+    print(all_op)
+    file_name = folder+"SingleProtein_MultiSim_Diffusion_{0}".format(sim_id)
+    pwa.PlotMultipleSim(x, all_op,labels,x_label,y_label,title_string,file_name,save_it=1)
+    pwa.plotNormMulti(x, all_op,labels,x_label,y_label,title_string,file_name,norm_type=norm_type)
+    
+    scales = np.array([1/5,1/2,1,2])
+    title_string = "Effect of changing half-life";
+    modified_objs = SP_model1.ParameterEffect(scales,half_life = 1)
+    labels =  ["T-half X {%.2f}"%(scale) for scale in scales]
+    all_op = np.zeros((len(scales),len(x)))
+    for ind,key in enumerate(modified_objs.keys()):
+        _,all_op[ind] = modified_objs[key].solveModel()
+    print(all_op)
+    file_name = folder+"SingleProtein_MultiSim_half_life_{0}".format(sim_id)
+    pwa.PlotMultipleSim(x, all_op,labels,x_label,y_label,title_string,file_name,save_it=1)
+    pwa.plotNormMulti(x, all_op,labels,x_label,y_label,title_string,file_name,norm_type=norm_type)

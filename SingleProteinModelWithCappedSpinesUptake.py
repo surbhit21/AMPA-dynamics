@@ -40,7 +40,7 @@ class SingleProteinModelWihtCappedSpinesUptake():
     
     def fun(self,x,y):
         # print(L)
-        return y[1], ((self.Lamda_p- self.V_p/L)/self.D_p)*y[0] + self.eta_p_max*np.tanh(self.eta_p_zero*y[0])+ ((self.V_p*(1-x/L))/self.D_p)*y[1]
+        return y[1], ((self.Lamda_p - self.V_p/L)/self.D_p)*y[0] + self.eta_p_max*np.tanh(self.eta_p_zero*y[0])+ ((self.V_p*(1-x/L))/self.D_p)*y[1]
         
     def bc(self,ya,yb):
         return np.array([self.D_p*ya[1] - self.V_p*ya[0] + self.Jin, self.D_p*yb[1]])
@@ -76,7 +76,8 @@ class SingleProteinModelWihtCappedSpinesUptake():
         file_name = "Figures/Spine_SingleSim_OneProtein_CappedUptake_dist_{0}".format(sim_id);
         p_spine = self.eta_p_max*np.tanh(self.eta_p_zero*p_dist);
         pwa.PlotSingleSimSingleProtein(x, p_spine, lab_p_spine, x_label, y_label, title_string, file_name,fsize=14,save_it = 1)
-        
+        return p_spine
+    
     
 if __name__ == '__main__':
     SP_model1 = SingleProteinModelWihtCappedSpinesUptake(0.45,0.1,4.35,1.0,6e-4,0.1);
