@@ -52,6 +52,7 @@ class SingleProteinModelWithoutSpines():
         p_dist = soln.sol(x)[0]
         # norm_p_dist = p_dist/p_dist[0]
         # print(len(p_dist))
+        self.IntegralBC(x, p_dist)
         return np.array([x,p_dist])
         # self.PlotMultipleSim( y, y, np.array([lab,lab]), x_label, y_label, title_string, file_name)
     # # def SolveMultiModel(self,D_p_arr)
@@ -77,9 +78,9 @@ class SingleProteinModelWithoutSpines():
             print(output[ind].__dict__)
         return output
     
-    def IntegralBC(self):
+    def IntegralBC(self,x,p):
         total_p = self.Jin/self.Lamda_p;# + self.Jsin/self.Lamda_ps
-        x,p= self.solveModel()
+        # x,p= self.solveModel()
         num_total_p = (np.sum(p))*(x[1]-x[0])
         print("total p analytic/total p numeric = ",total_p/num_total_p)
     
@@ -87,54 +88,54 @@ if __name__ == '__main__':
     SP_model1 = SingleProteinModelWithoutSpines(0.45,0.1,4.35,0.1);
     sim_id = "001";
     x,p_dist = SP_model1.solveModel()
-    SP_model1.IntegralBC()
     SP_model1.updateModelParams(V_p=0.001);
     SP_model1.solveModel()
     title_string = "Steady-state spatial distribution \n parameters: $D_p = {%.2f}, V_p = {%.1e}$, half-life = %.2f, Jin= %.2f" \
         %( SP_model1.D_p, SP_model1.V_p, SP_model1.half_life,SP_model1.Jin);
     lab =  'AMPA-R'
-    x_label = r'Dendritic distance in ($\mu$M)';
+    x_label = r'Dendritic distance (in $\mu$M)';
     y_label= r'Protein number';
     folder= "Figures/OneProtein/NoUptake/";
     file_name = folder+"SingleProtein_SingleSim_{0}".format(sim_id);
     pwa = PlottingWidgetAMPA()
     pwa.CreateFolderRecursive(folder)
-    norm_type = "Max";
-    pwa.PlotSingleSimSingleProtein(x, p_dist, lab, x_label, y_label, title_string, file_name)
-    pwa.plotNormSingle(x, p_dist, lab, x_label, y_label, title_string, file_name,norm_type=norm_type)
-    
-    scales = np.array([1/5,1/2,1,2])
-    modified_objs = SP_model1.ParameterEffect(scales,V_p = 1)
-    labels =  ["Vp X {%.2f}"%(scale) for scale in scales]
-    title_string = "Effect of changing velocity of active transport";
-    all_op = np.zeros((len(scales),len(x)))
-    for ind,key in enumerate(modified_objs.keys()):
-        _,all_op[ind] = modified_objs[key].solveModel()
-    print(all_op)
-    file_name = folder+"SingleProtein_MultiSim_velocity_{0}".format(sim_id)
-    pwa.PlotMultipleSim(x, all_op,labels,x_label,y_label,title_string,file_name,save_it=1)
-    pwa.plotNormMulti(x, all_op,labels,x_label,y_label,title_string,file_name,norm_type=norm_type)
-    
-    scales = np.array([1/100,1,100,1000])
-    title_string = "Effect of changing diffusion constant";
-    modified_objs = SP_model1.ParameterEffect(scales,D_p = 1)
-    labels =  ["Dp X {%.2f}"%(scale) for scale in scales]
-    all_op = np.zeros((len(scales),len(x)))
-    for ind,key in enumerate(modified_objs.keys()):
-        _,all_op[ind] = modified_objs[key].solveModel()
-    print(all_op)
-    file_name = folder+"SingleProtein_MultiSim_Diffusion_{0}".format(sim_id)
-    pwa.PlotMultipleSim(x, all_op,labels,x_label,y_label,title_string,file_name,save_it=1)
-    pwa.plotNormMulti(x, all_op,labels,x_label,y_label,title_string,file_name,norm_type=norm_type)
-    
-    scales = np.array([1/5,1/2,1,2])
-    title_string = "Effect of changing half-life";
-    modified_objs = SP_model1.ParameterEffect(scales,half_life = 1)
-    labels =  ["T-half X {%.2f}"%(scale) for scale in scales]
-    all_op = np.zeros((len(scales),len(x)))
-    for ind,key in enumerate(modified_objs.keys()):
-        _,all_op[ind] = modified_objs[key].solveModel()
-    print(all_op)
-    file_name = folder+"SingleProtein_MultiSim_half_life_{0}".format(sim_id)
-    pwa.PlotMultipleSim(x, all_op,labels,x_label,y_label,title_string,file_name,save_it=1)
-    pwa.plotNormMulti(x, all_op,labels,x_label,y_label,title_string,file_name,norm_type=norm_type)
+    norm_types = ["Max","Sum"];
+    for norm_type in norm_types:
+        pwa.PlotSingleSimSingleProtein(x, p_dist, lab, x_label, y_label, title_string, file_name)
+        pwa.plotNormSingle(x, p_dist, lab, x_label, y_label, title_string, file_name,norm_type=norm_type)
+        
+        scales = np.array([1/5,1/2,1,2])
+        modified_objs = SP_model1.ParameterEffect(scales,V_p = 1)
+        labels =  ["Vp X {%.2f}"%(scale) for scale in scales]
+        title_string = "Effect of changing velocity of active transport";
+        all_op = np.zeros((len(scales),len(x)))
+        for ind,key in enumerate(modified_objs.keys()):
+            x,all_op[ind] = modified_objs[key].solveModel()
+        print(all_op)
+        file_name = folder+"SingleProtein_MultiSim_velocity_{0}".format(sim_id)
+        pwa.PlotMultipleSim(x, all_op,labels,x_label,y_label,title_string,file_name,save_it=1)
+        pwa.plotNormMulti(x, all_op,labels,x_label,y_label,title_string,file_name,norm_type=norm_type)
+        
+        scales = np.array([1/100,1,100,1000])
+        title_string = "Effect of changing diffusion constant";
+        modified_objs = SP_model1.ParameterEffect(scales,D_p = 1)
+        labels =  ["Dp X {%.2f}"%(scale) for scale in scales]
+        all_op = np.zeros((len(scales),len(x)))
+        for ind,key in enumerate(modified_objs.keys()):
+            x,all_op[ind] = modified_objs[key].solveModel()
+        print(all_op)
+        file_name = folder+"SingleProtein_MultiSim_Diffusion_{0}".format(sim_id)
+        pwa.PlotMultipleSim(x, all_op,labels,x_label,y_label,title_string,file_name,save_it=1)
+        pwa.plotNormMulti(x, all_op,labels,x_label,y_label,title_string,file_name,norm_type=norm_type)
+        
+        scales = np.array([1/5,1/2,1,2])
+        title_string = "Effect of changing half-life";
+        modified_objs = SP_model1.ParameterEffect(scales,half_life = 1)
+        labels =  ["T-half X {%.2f}"%(scale) for scale in scales]
+        all_op = np.zeros((len(scales),len(x)))
+        for ind,key in enumerate(modified_objs.keys()):
+            x,all_op[ind] = modified_objs[key].solveModel()
+        print(all_op)
+        file_name = folder+"SingleProtein_MultiSim_half_life_{0}".format(sim_id)
+        pwa.PlotMultipleSim(x, all_op,labels,x_label,y_label,title_string,file_name,save_it=1)
+        pwa.plotNormMulti(x, all_op,labels,x_label,y_label,title_string,file_name,norm_type=norm_type)

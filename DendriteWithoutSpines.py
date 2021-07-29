@@ -70,6 +70,7 @@ class DendriteWithoutSpines():
         ps_dist = soln.sol(x)[0]
         pc_dist = soln.sol(x)[2]
         # print(len(ps_dist))
+        self.IntegralBC(, ps_dist, pc_dist)
         return x,ps_dist,pc_dist
         
     
@@ -109,17 +110,23 @@ class DendriteWithoutSpines():
             # print(output[ind].__dict__)
         return output
 
-    def IntegralBC(self):
-        total_p = (self.Jcin/self.Lamda_pc)*(1+self.beta/self.alpha);# + self.Jsin/self.Lamda_ps
-        x,ps,pc = self.solveModel()
-        num_total_p = (np.sum(ps) + np.sum(pc))*(x[1]-x[0])
+    def IntegralBC(self,delta_x,ps,pc):
+        total_pc = (self.Jcin)/( self.Lamda_pc )
+        total_ps = (self.beta*self.Jcin)/(self.alpha* self.Lamda_pc)
+        # x,p= self.solveModel()
+        num_total_ps = np.sum(ps)*delta_x
+        num_total_pc = np.sum(pc)*delta_x;
+        total_p  = total_pc + total_ps
+        num_total_p = num_total_pc + num_total_ps;
+        print("total surface p analytic/total surface p numeric = ",total_ps/num_total_ps)
+        print("total cytoplasmic p analytic/total cytoplasmic p numeric = ",total_pc/num_total_pc)
         print("total p analytic/total p numeric = ",total_p/num_total_p)
 if __name__ == '__main__':
     sim_id = "001";
     SP_model1 = DendriteWithoutSpines(0.45,0.05,0.1,float('inf'),4.35,0.1,0.2,0.0,0.1);
     x,ps_dist,pc_dist=SP_model1.solveModel()
     folder= "Figures/TwoProtein/NoUptake/";
-    file_name = folder+"SingleProtein_SingleSim_{0}".format(sim_id);
+    file_name = folder+"TwoProtein_SingleSim_{0}".format(sim_id);
     pwa = PlottingWidgetAMPA()
     pwa.CreateFolderRecursive(folder)
     title_string = (r"Steady-state spatial distribution"+" \n parameters:\
@@ -128,89 +135,91 @@ if __name__ == '__main__':
         %( SP_model1.D_s, SP_model1.half_life_surf,SP_model1.Jsin,SP_model1.alpha, SP_model1.D_c,SP_model1.V_p, SP_model1.half_life_int,SP_model1.Jcin,SP_model1.beta);
     lab_ps =  'Surf-AMPA-R'
     lab_pc =  'Int-AMPA-R'
-    x_label = r'Dendritic distance in ($\mu$M)';
+    x_label = r'Dendritic distance (in $\mu$M)';
     y_label= r'Protein number';
     file_name = folder+"TwoProtein_SingleSim_withoutSpines_{0}".format(sim_id);
-    pwa = PlottingWidgetAMPA()
-    norm_type = "Max"
     pwa.PlotSingleSimTwoProtein(x, ps_dist,pc_dist, lab_ps,lab_pc, x_label, y_label, title_string, file_name,fsize=14,save_it = 1)
-    pwa.plotNormTwo(x, ps_dist,pc_dist, lab_ps,lab_pc, x_label, y_label, title_string, file_name,fsize=14,save_it = 1,norm_type=norm_type)
-    SP_model1.IntegralBC()
-    scales = np.array([1/5,1/2,1,2])
-    modified_objs = SP_model1.ParameterEffect(scales,V_p = 1)
-    labels =  ["Vp X {%.2f}"%(scale) for scale in scales]
-    title_string = "Effect of changing velocity of active transport";
-    all_ps = np.zeros((len(scales),len(x)))
-    all_pc = np.zeros((len(scales),len(x)))
-    for ind,key in enumerate(modified_objs.keys()):
-        _,all_ps[ind],all_pc[ind] = modified_objs[key].solveModel()
-        modified_objs[key].IntegralBC()
-    # print(all_op)
-    file_name = folder+"TwoProtein_MultiSim_velocity_{0}".format(sim_id)
-    pwa.PlotMultiSimTwoProtein(x, all_ps,all_pc,labels,labels,x_label,y_label,title_string,file_name,save_it=1)
-    pwa.plotNormMultiTwo(x, all_ps,all_pc, labels,labels, x_label, y_label, title_string, file_name,fsize=14,save_it = 1,norm_type=norm_type)
-    
-    scales = np.array([1/100,1,100,1000])
-    title_string = "Effect of changing surface diffusion constant";
-    modified_objs = SP_model1.ParameterEffect(scales,D_s = 1)
-    labels =  ["Dp X {%.2f}"%(scale) for scale in scales]
-    # all_op = np.zeros((len(scales),len(x)))
-    for ind,key in enumerate(modified_objs.keys()):
-        _,all_ps[ind],all_pc[ind] = modified_objs[key].solveModel()
-        modified_objs[key].IntegralBC()
-    # print(all_op)
-    file_name = folder+"TwoProtein_MultiSim_surface_Diffusion_{0}".format(sim_id)
-    pwa.PlotMultiSimTwoProtein(x, all_ps,all_pc,labels,labels,x_label,y_label,title_string,file_name,save_it=1)
-    pwa.plotNormMultiTwo(x, all_ps,all_pc, labels,labels, x_label, y_label, title_string, file_name,fsize=14,save_it = 1,norm_type=norm_type)
-    
-    scales = np.array([1/5,1/2,1,2])
-    title_string = "Effect of changing half-life-int";
-    modified_objs = SP_model1.ParameterEffect(scales,half_life_int = 1)
-    labels =  ["T-half-int X {%.2f}"%(scale) for scale in scales]
-    # all_op = np.zeros((len(scales),len(x)))
-    for ind,key in enumerate(modified_objs.keys()):
-        _,all_ps[ind],all_pc[ind] = modified_objs[key].solveModel()
-        modified_objs[key].IntegralBC()
-    # print(all_op)
-    file_name = folder+"TwoProtein_MultiSim_half_life_{0}".format(sim_id)
-    pwa.PlotMultiSimTwoProtein(x, all_ps,all_pc,labels,labels,x_label,y_label,title_string,file_name,save_it=1)
-    pwa.plotNormMultiTwo(x, all_ps,all_pc, labels,labels, x_label, y_label, title_string, file_name,fsize=14,save_it = 1,norm_type=norm_type)
-    
-    scales = np.array([1/5,1/2,1,2])
-    title_string = "Effect of changing endocytosis/exocytosis rates";
-    modified_objs = SP_model1.ParameterEffect(scales,alpha = 1,beta = 1)
-    labels =  ["alpha,beta X {%.2f}"%(scale) for scale in scales]
-    # all_op = np.zeros((len(scales),len(x)))
-    for ind,key in enumerate(modified_objs.keys()):
-        _,all_ps[ind],all_pc[ind] = modified_objs[key].solveModel()
-        modified_objs[key].IntegralBC()
-    # print(all_op)
-    file_name = folder+"TwoProtein_MultiSim_recycling_{0}".format(sim_id)
-    pwa.PlotMultiSimTwoProtein(x, all_ps,all_pc,labels,labels,x_label,y_label,title_string,file_name,save_it=1)
-    pwa.plotNormMultiTwo(x, all_ps,all_pc, labels,labels, x_label, y_label, title_string, file_name,fsize=14,save_it = 1,norm_type=norm_type)
-    
-    scales = np.array([1/5,1/2,1,2])
-    title_string = "Effect of changing endocytosis rates";
-    modified_objs = SP_model1.ParameterEffect(scales,alpha = 1)
-    labels =  ["alpha X {%.2f}"%(scale) for scale in scales]
-    # all_op = np.zeros((len(scales),len(x)))
-    for ind,key in enumerate(modified_objs.keys()):
-        _,all_ps[ind],all_pc[ind] = modified_objs[key].solveModel()
-    # print(all_op)
-    file_name = folder+"TwoProtein_MultiSim_endocytosis_{0}".format(sim_id)
-    pwa.PlotMultiSimTwoProtein(x, all_ps,all_pc,labels,labels,x_label,y_label,title_string,file_name,save_it=1)
-    pwa.plotNormMultiTwo(x, all_ps,all_pc, labels,labels, x_label, y_label, title_string, file_name,fsize=14,save_it = 1,norm_type=norm_type)
-    
-    scales = np.array([1/5,1/2,1,2])
-    title_string = "Effect of changing exocytosis rates";
-    modified_objs = SP_model1.ParameterEffect(scales,beta = 1)
-    labels =  ["beta X {%.2f}"%(scale) for scale in scales]
-    # all_op = np.zeros((len(scales),len(x)))
-    for ind,key in enumerate(modified_objs.keys()):
-        _,all_ps[ind],all_pc[ind] = modified_objs[key].solveModel()
-        modified_objs[key].IntegralBC()
-    # print(all_op)
-    file_name = folder+"TwoProtein_MultiSim_exocytosis_{0}".format(sim_id)
-    pwa.PlotMultiSimTwoProtein(x, all_ps,all_pc,labels,labels,x_label,y_label,title_string,file_name,save_it=1)
-    pwa.plotNormMultiTwo(x, all_ps,all_pc, labels,labels, x_label, y_label, title_string, file_name,fsize=14,save_it = 1,norm_type=norm_type)
+    norm_types = ["Max","Sum"]
+    for norm_type in norm_types:
+        pwa.plotNormTwo(x, ps_dist,pc_dist, lab_ps,lab_pc, x_label, y_label, title_string, file_name,fsize=14,save_it = 1,norm_type=norm_type)
+        # SP_model1.IntegralBC()
+        scales = np.array([1/5,1/2,1,2])
+        modified_objs = SP_model1.ParameterEffect(scales,V_p = 1)
+        labels =  ["Vp X {%.2f}"%(scale) for scale in scales]
+        title_string = "Effect of changing velocity of active transport";
+        all_ps = np.zeros((len(scales),len(x)))
+        all_pc = np.zeros((len(scales),len(x)))
+        for ind,key in enumerate(modified_objs.keys()):
+            x,all_ps[ind],all_pc[ind] = modified_objs[key].solveModel()
+            # modified_objs[key].IntegralBC(x,all_ps[ind],all_pc[ind])
+        # print(all_op)
+        file_name = folder+"TwoProtein_MultiSim_velocity_{0}".format(sim_id)
+        pwa.PlotMultiSimTwoProtein(x, all_ps,all_pc,labels,labels,x_label,y_label,title_string,file_name,save_it=1)
+        pwa.plotNormMultiTwo(x, all_ps,all_pc, labels,labels, x_label, y_label, title_string, file_name,fsize=14,save_it = 1,norm_type=norm_type)
+        
+        scales = np.array([1/100,1,100,1000])
+        title_string = "Effect of changing surface diffusion constant";
+        modified_objs = SP_model1.ParameterEffect(scales,D_s = 1)
+        labels =  ["Dp X {%.2f}"%(scale) for scale in scales]
+        # all_op = np.zeros((len(scales),len(x)))
+        for ind,key in enumerate(modified_objs.keys()):
+            x,all_ps[ind],all_pc[ind] = modified_objs[key].solveModel()
+            # modified_objs[key].IntegralBC(x,all_ps[ind],all_pc[ind])
+        # print(all_op)
+        file_name = folder+"TwoProtein_MultiSim_surface_Diffusion_{0}".format(sim_id)
+        pwa.PlotMultiSimTwoProtein(x, all_ps,all_pc,labels,labels,x_label,y_label,title_string,file_name,save_it=1)
+        pwa.plotNormMultiTwo(x, all_ps,all_pc, labels,labels, x_label, y_label, title_string, file_name,fsize=14,save_it = 1,norm_type=norm_type)
+        
+        scales = np.array([1/5,1/2,1,2])
+        title_string = "Effect of changing half-life-int";
+        modified_objs = SP_model1.ParameterEffect(scales,half_life_int = 1)
+        labels =  ["T-half-int X {%.2f}"%(scale) for scale in scales]
+        # all_op = np.zeros((len(scales),len(x)))
+        for ind,key in enumerate(modified_objs.keys()):
+            x,all_ps[ind],all_pc[ind] = modified_objs[key].solveModel()
+            # modified_objs[key].IntegralBC(x,all_ps[ind],all_pc[ind])
+        # print(all_op)
+        file_name = folder+"TwoProtein_MultiSim_half_life_{0}".format(sim_id)
+        pwa.PlotMultiSimTwoProtein(x, all_ps,all_pc,labels,labels,x_label,y_label,title_string,file_name,save_it=1)
+        pwa.plotNormMultiTwo(x, all_ps,all_pc, labels,labels, x_label, y_label, title_string, file_name,fsize=14,save_it = 1,norm_type=norm_type)
+        
+        scales = np.array([1/5,1/2,1,2])
+        title_string = "Effect of changing endocytosis/exocytosis rates";
+        modified_objs = SP_model1.ParameterEffect(scales,alpha = 1,beta = 1)
+        labels =  ["alpha,beta X {%.2f}"%(scale) for scale in scales]
+        # all_op = np.zeros((len(scales),len(x)))
+        for ind,key in enumerate(modified_objs.keys()):
+            x,all_ps[ind],all_pc[ind] = modified_objs[key].solveModel()
+            # modified_objs[key].IntegralBC(x,all_ps[ind],all_pc[ind])
+        # print(all_op)
+        file_name = folder+"TwoProtein_MultiSim_recycling_{0}".format(sim_id)
+        pwa.PlotMultiSimTwoProtein(x, all_ps,all_pc,labels,labels,x_label,y_label,title_string,file_name,save_it=1)
+        pwa.plotNormMultiTwo(x, all_ps,all_pc, labels,labels, x_label, y_label, title_string, file_name,fsize=14,save_it = 1,norm_type=norm_type)
+        
+        scales = np.array([1/5,1/2,1,2])
+        title_string = "Effect of changing endocytosis rates";
+        modified_objs = SP_model1.ParameterEffect(scales,alpha = 1)
+        labels =  ["alpha X {%.2f}"%(scale) for scale in scales]
+        # all_op = np.zeros((len(scales),len(x)))
+        for ind,key in enumerate(modified_objs.keys()):
+            x,all_ps[ind],all_pc[ind] = modified_objs[key].solveModel()
+            # modified_objs[key].IntegralBC(x,all_ps[ind],all_pc[ind])
+        # print(all_op)
+        file_name = folder+"TwoProtein_MultiSim_endocytosis_{0}".format(sim_id)
+        pwa.PlotMultiSimTwoProtein(x, all_ps,all_pc,labels,labels,x_label,y_label,title_string,file_name,save_it=1)
+        pwa.plotNormMultiTwo(x, all_ps,all_pc, labels,labels, x_label, y_label, title_string, file_name,fsize=14,save_it = 1,norm_type=norm_type)
+        
+        scales = np.array([1/5,1/2,1,2])
+        title_string = "Effect of changing exocytosis rates";
+        modified_objs = SP_model1.ParameterEffect(scales,beta = 1)
+        labels =  ["beta X {%.2f}"%(scale) for scale in scales]
+        # all_op = np.zeros((len(scales),len(x)))
+        for ind,key in enumerate(modified_objs.keys()):
+            x,all_ps[ind],all_pc[ind] = modified_objs[key].solveModel()
+            # modified_objs[key].IntegralBC(x,all_ps[ind],all_pc[ind])
+        # print(all_op)
+        file_name = folder+"TwoProtein_MultiSim_exocytosis_{0}".format(sim_id)
+        pwa.PlotMultiSimTwoProtein(x, all_ps,all_pc,labels,labels,x_label,y_label,title_string,file_name,save_it=1)
+        pwa.plotNormMultiTwo(x, all_ps,all_pc, labels,labels, x_label, y_label, title_string, file_name,fsize=14,save_it = 1,norm_type=norm_type)
+
     

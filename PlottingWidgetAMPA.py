@@ -46,14 +46,14 @@ class PlottingWidgetAMPA():
         if x.shape != (ps[0].shape) and (ps[0].shape) != (pc[0].shape):
             print("data shapes are not equal x is of size ")
         else:
-            markers = ['--r','-b',':g','_c','-.y'];
+            markers = ['-','-.'];
             fig, ax = plt.subplots(figsize=(width, height))
             # plt.rc('font', **{'family':'serif','serif':['Palatino']})
             # plt.rc('text', usetex=False)
             y_shape = ps.shape;
             for i in range(0,y_shape[0]):
-                ax.plot(x,ps[i],markers[i],label=lab_ps[i],alpha=0.9,color=color_list[i])
-                ax.plot(x,pc[i],markers[i],alpha=0.2,color=color_list[i])
+                ax.plot(x,ps[i],markers[0],label=lab_ps[i],alpha=1,color=color_list[i])
+                ax.plot(x,pc[i],markers[1],alpha=0.5,color=color_list[i])
             ax.set_xlabel(xlab,fontsize=fsize)
             ax.set_ylabel(ylab,fontsize=fsize)
             plt.title(title_string,fontsize=fsize)
@@ -138,7 +138,7 @@ class PlottingWidgetAMPA():
         elif norm_type == "Last":
             norm_y = y/y[-1];
             new_ylab = "Last value normalized " + ylab;
-        new_file_name = file_name+"_"+norm_type;
+        new_file_name = file_name+"_"+norm_type+"_normalized";
         # print(new_file_name)
         # print(width,height)
         self.PlotSingleSimSingleProtein(x,norm_y,lab,xlab,new_ylab,title_string,new_file_name,width,height,fsize,save_it)
@@ -171,7 +171,7 @@ class PlottingWidgetAMPA():
             norm_y1 = y1/y1[-1];
             norm_y2 = y2/y1[-1];
             new_ylab = "Last value normalized " + ylab;
-        new_file_name = file_name+"_"+norm_type;
+        new_file_name = file_name+"_"+norm_type+"_normalized";
         # print(new_file_name)
         # print(width,height)
         self.PlotSingleSimTwoProtein(x,norm_y1,norm_y2,lab1,lab2,xlab,new_ylab,title_string,new_file_name,width,height,fsize,save_it)
@@ -197,7 +197,7 @@ class PlottingWidgetAMPA():
             norm_factor = y[:,-1];
             new_ylab = "Last value normalized " + ylab;
         norm_y = y/norm_factor[:, np.newaxis]
-        new_file_name = file_name+"_"+norm_type;
+        new_file_name = file_name+"_"+norm_type+"_normalized";
         # print(new_file_name)
         # print(width,height)
         self.PlotMultipleSim(x,norm_y,lab,xlab,new_ylab,title_string,new_file_name,width,height,fsize,save_it)
@@ -224,7 +224,7 @@ class PlottingWidgetAMPA():
             new_ylab = "Last value normalized " + ylab;
         norm_y1 = y1/norm_factor[:, np.newaxis]
         norm_y2 = y2/norm_factor[:, np.newaxis]
-        new_file_name = file_name+"_"+norm_type;
+        new_file_name = file_name+"_"+norm_type+"_normalized";
         # print(new_file_name)
         # print(width,height)
         self.PlotMultiSimTwoProtein(x,norm_y1,norm_y2,lab1,lab2,xlab,new_ylab,title_string,new_file_name,width,height,fsize,save_it)
