@@ -1,0 +1,30 @@
+['soma.csv', 'Secondary_050_002.csv', 'Secondary_050_003.csv', 'Secondary_050_001.csv', 'Primary_075_001.csv', 'Secondary_075_003.csv', 'Secondary_075_002.csv', 'Secondary_075_001.csv', 'Secondary_075_004.csv'] ['soma.csv', 'Secondary_050_002.csv', 'Secondary_050_003.csv', 'Secondary_050_001.csv', 'Primary_075_001.csv', 'Secondary_075_003.csv', 'Secondary_075_002.csv', 'Secondary_075_001.csv', 'Secondary_075_004.csv']
+['soma.csv', 'Primary_100_001.csv', 'Primary_025_001.csv', 'Primary_025_002.csv', 'Primary_150_001.csv', 'Secondary_075_001.csv', 'Primary_050_002.csv', 'Primary_050_001.csv'] ['soma.csv', 'Primary_100_001.csv', 'Primary_025_001.csv', 'Primary_025_002.csv', 'Primary_150_001.csv', 'Secondary_075_001.csv', 'Primary_050_002.csv', 'Primary_050_001.csv']
+['soma.csv', 'Primary_125_001.csv', 'Secondary_050_001.csv', 'Secondary_150_001.csv', 'Quaternary_050_001.csv', 'Secondary_075_001.csv'] ['soma.csv', 'Primary_125_001.csv', 'Secondary_050_001.csv', 'Secondary_150_001.csv', 'Quaternary_050_001.csv', 'Secondary_075_001.csv']
+['Tertiary_100_001.csv', 'soma.csv', 'Primary_100_001.csv', 'Secondary_050_001.csv', 'Secondary_075_001.csv', 'Primary_050_001.csv'] ['Tertiary_100_001.csv', 'soma.csv', 'Primary_100_001.csv', 'Secondary_050_001.csv', 'Secondary_075_001.csv', 'Primary_050_001.csv']
+['Secondary_100_001.csv', 'Secondary_025_001.csv', 'soma.csv', 'Tertiary_125_001.csv', 'Primary_025_001.csv', 'Primary_025_002.csv', 'Tertiary_050_001.csv', 'Secondary_050_001.csv', 'Primary_075_001.csv'] ['Secondary_100_001.csv', 'Secondary_025_001.csv', 'soma.csv', 'Tertiary_125_001.csv', 'Primary_025_001.csv', 'Primary_025_002.csv', 'Tertiary_050_001.csv', 'Secondary_050_001.csv', 'Primary_075_001.csv']
+['Secondary_100_001.csv', 'soma.csv', 'Primary_125_001.csv', 'Primary_100_001.csv', 'Secondary_050_002.csv', 'Secondary_050_001.csv', 'Secondary_075_001.csv'] ['Secondary_100_001.csv', 'soma.csv', 'Primary_125_001.csv', 'Primary_100_001.csv', 'Secondary_050_002.csv', 'Secondary_050_001.csv', 'Secondary_075_001.csv']
+['soma.csv', 'Quaternary_100_001.csv', 'Primary_025_001.csv', 'Primary_025_002.csv', 'Secondary_150_001.csv', 'Quaternary_050_001.csv', 'Primary_050_001.csv'] ['soma.csv', 'Quaternary_100_001.csv', 'Primary_025_001.csv', 'Primary_025_002.csv', 'Secondary_150_001.csv', 'Quaternary_050_001.csv', 'Primary_050_001.csv']
+['soma.csv', 'Primary_125_001.csv', 'Quaternary_025_001.csv', 'Secondary_125_001.csv', 'Primary_025_001.csv', 'Quaternary_050_001.csv', 'Secondary_075_001.csv'] ['soma.csv', 'Primary_125_001.csv', 'Quaternary_025_001.csv', 'Secondary_125_001.csv', 'Primary_025_001.csv', 'Quaternary_050_001.csv', 'Secondary_075_001.csv']
+['Secondary_100_001.csv', 'soma.csv', 'Primary_075_003.csv', 'Primary_075_002.csv', 'Primary_150_001.csv', 'Primary_075_001.csv', 'Secondary_075_001.csv'] ['Secondary_100_001.csv', 'soma.csv', 'Primary_075_003.csv', 'Primary_075_002.csv', 'Primary_150_001.csv', 'Primary_075_001.csv', 'Secondary_075_001.csv']
+['Secondary_100_001.csv', 'Secondary_50_002.csv', 'soma.csv', 'Primary_125_001.csv', 'Primary_100_001.csv', 'Primary_025_001.csv', 'Primary_025_003.csv', 'Primary_025_002.csv', 'Secondary_050_001.csv', 'Primary_075_001.csv', 'Secondary_075_003.csv', 'Secondary_075_002.csv', 'Secondary_075_001.csv'] ['Secondary_100_001.csv', 'Secondary_50_002.csv', 'soma.csv', 'Primary_125_001.csv', 'Primary_100_001.csv', 'Primary_025_001.csv', 'Primary_025_003.csv', 'Primary_025_002.csv', 'Secondary_050_001.csv', 'Primary_075_001.csv', 'Secondary_075_003.csv', 'Secondary_075_002.csv', 'Secondary_075_001.csv']
+['Secondary_025_001.csv', 'Tertiary_100_001.csv', 'soma.csv', 'Quaternary_075_001.csv', 'Primary_075_001.csv', 'Secondary_075_002.csv', 'Tertiary_075_001.csv', 'Quaternary_050_001.csv', 'Secondary_075_001.csv'] ['Secondary_025_001.csv', 'Tertiary_100_001.csv', 'soma.csv', 'Quaternary_075_001.csv', 'Primary_075_001.csv', 'Secondary_075_002.csv', 'Tertiary_075_001.csv', 'Quaternary_050_001.csv', 'Secondary_075_001.csv']
+in mean 2
+dc_init =  0.0834975998257348
+ds_init =  0.38698719958945915
+vp_init =  1.4558933613669793
+[[Variables]]
+    dc:              0.10541980 (init = 0.0834976)
+    ds:              0.47450205 (init = 0.3869872)
+    vp:             -0.00120490 (init = 1.455893)
+    dx:              0.24 (fixed)
+    half_life_surf:  inf (fixed)
+    half_life_int:   4.35 (fixed)
+    alpha:           1 (fixed)
+    beta:            0.8673779 (fixed)
+    Jsin:            0 (fixed)
+    Jcin:            0.021 (fixed)
+    eta_s_max:       60 (fixed)
+    eta_s_zero:      0.02325581 (fixed)
+    gamma:           0.02325581 (fixed)
+Not enough memory to perform factorization.

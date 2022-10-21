@@ -115,5 +115,8 @@ dmypy.json
 .pyre/
 
 
-#ignoring the figures from Figures folder also
+#ignoring the figures, Data and optimization folders for now
+
 Figures/
+Data/
+optimization/

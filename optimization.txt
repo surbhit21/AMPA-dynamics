@@ -1,0 +1,61 @@
+['soma.csv', 'Secondary_050_002.csv', 'Secondary_050_003.csv', 'Secondary_050_001.csv', 'Primary_075_001.csv', 'Secondary_075_003.csv', 'Secondary_075_002.csv', 'Secondary_075_001.csv', 'Secondary_075_004.csv'] ['soma.csv', 'Secondary_050_002.csv', 'Secondary_050_003.csv', 'Secondary_050_001.csv', 'Primary_075_001.csv', 'Secondary_075_003.csv', 'Secondary_075_002.csv', 'Secondary_075_001.csv', 'Secondary_075_004.csv']
+['soma.csv', 'Primary_100_001.csv', 'Primary_025_001.csv', 'Primary_025_002.csv', 'Primary_150_001.csv', 'Secondary_075_001.csv', 'Primary_050_002.csv', 'Primary_050_001.csv'] ['soma.csv', 'Primary_100_001.csv', 'Primary_025_001.csv', 'Primary_025_002.csv', 'Primary_150_001.csv', 'Secondary_075_001.csv', 'Primary_050_002.csv', 'Primary_050_001.csv']
+['soma.csv', 'Primary_125_001.csv', 'Secondary_050_001.csv', 'Secondary_150_001.csv', 'Quaternary_050_001.csv', 'Secondary_075_001.csv'] ['soma.csv', 'Primary_125_001.csv', 'Secondary_050_001.csv', 'Secondary_150_001.csv', 'Quaternary_050_001.csv', 'Secondary_075_001.csv']
+['Tertiary_100_001.csv', 'soma.csv', 'Primary_100_001.csv', 'Secondary_050_001.csv', 'Secondary_075_001.csv', 'Primary_050_001.csv'] ['Tertiary_100_001.csv', 'soma.csv', 'Primary_100_001.csv', 'Secondary_050_001.csv', 'Secondary_075_001.csv', 'Primary_050_001.csv']
+['Secondary_100_001.csv', 'Secondary_025_001.csv', 'soma.csv', 'Tertiary_125_001.csv', 'Primary_025_001.csv', 'Primary_025_002.csv', 'Tertiary_050_001.csv', 'Secondary_050_001.csv', 'Primary_075_001.csv'] ['Secondary_100_001.csv', 'Secondary_025_001.csv', 'soma.csv', 'Tertiary_125_001.csv', 'Primary_025_001.csv', 'Primary_025_002.csv', 'Tertiary_050_001.csv', 'Secondary_050_001.csv', 'Primary_075_001.csv']
+['Secondary_100_001.csv', 'soma.csv', 'Primary_125_001.csv', 'Primary_100_001.csv', 'Secondary_050_002.csv', 'Secondary_050_001.csv', 'Secondary_075_001.csv'] ['Secondary_100_001.csv', 'soma.csv', 'Primary_125_001.csv', 'Primary_100_001.csv', 'Secondary_050_002.csv', 'Secondary_050_001.csv', 'Secondary_075_001.csv']
+['soma.csv', 'Quaternary_100_001.csv', 'Primary_025_001.csv', 'Primary_025_002.csv', 'Secondary_150_001.csv', 'Quaternary_050_001.csv', 'Primary_050_001.csv'] ['soma.csv', 'Quaternary_100_001.csv', 'Primary_025_001.csv', 'Primary_025_002.csv', 'Secondary_150_001.csv', 'Quaternary_050_001.csv', 'Primary_050_001.csv']
+['soma.csv', 'Primary_125_001.csv', 'Quaternary_025_001.csv', 'Secondary_125_001.csv', 'Primary_025_001.csv', 'Quaternary_050_001.csv', 'Secondary_075_001.csv'] ['soma.csv', 'Primary_125_001.csv', 'Quaternary_025_001.csv', 'Secondary_125_001.csv', 'Primary_025_001.csv', 'Quaternary_050_001.csv', 'Secondary_075_001.csv']
+['Secondary_100_001.csv', 'soma.csv', 'Primary_075_003.csv', 'Primary_075_002.csv', 'Primary_150_001.csv', 'Primary_075_001.csv', 'Secondary_075_001.csv'] ['Secondary_100_001.csv', 'soma.csv', 'Primary_075_003.csv', 'Primary_075_002.csv', 'Primary_150_001.csv', 'Primary_075_001.csv', 'Secondary_075_001.csv']
+['Secondary_100_001.csv', 'Secondary_50_002.csv', 'soma.csv', 'Primary_125_001.csv', 'Primary_100_001.csv', 'Primary_025_001.csv', 'Primary_025_003.csv', 'Primary_025_002.csv', 'Secondary_050_001.csv', 'Primary_075_001.csv', 'Secondary_075_003.csv', 'Secondary_075_002.csv', 'Secondary_075_001.csv'] ['Secondary_100_001.csv', 'Secondary_50_002.csv', 'soma.csv', 'Primary_125_001.csv', 'Primary_100_001.csv', 'Primary_025_001.csv', 'Primary_025_003.csv', 'Primary_025_002.csv', 'Secondary_050_001.csv', 'Primary_075_001.csv', 'Secondary_075_003.csv', 'Secondary_075_002.csv', 'Secondary_075_001.csv']
+['Secondary_025_001.csv', 'Tertiary_100_001.csv', 'soma.csv', 'Quaternary_075_001.csv', 'Primary_075_001.csv', 'Secondary_075_002.csv', 'Tertiary_075_001.csv', 'Quaternary_050_001.csv', 'Secondary_075_001.csv'] ['Secondary_025_001.csv', 'Tertiary_100_001.csv', 'soma.csv', 'Quaternary_075_001.csv', 'Primary_075_001.csv', 'Secondary_075_002.csv', 'Tertiary_075_001.csv', 'Quaternary_050_001.csv', 'Secondary_075_001.csv']
+in mean 2
+dc_init =  0.08927187289313376
+ds_init =  0.15895682817634285
+vp_init =  0.9423294512052116
+[[Variables]]
+    dc:              0.05000000 (init = 0.08927187)
+    ds:              0.10000000 (init = 0.1589568)
+    vp:              5.0923e-05 (init = 0.9423295)
+    dx:              0.24 (fixed)
+    half_life_surf:  inf (fixed)
+    half_life_int:   4.35 (fixed)
+    alpha:           1 (fixed)
+    beta:            0.8673779 (fixed)
+    Jsin:            0 (fixed)
+    Jcin:            0.021 (fixed)
+    eta_s_max:       60 (fixed)
+    eta_s_zero:      0.02325581 (fixed)
+    gamma:           0.02325581 (fixed)
+[[Variables]]
+    dc:              0.05000000 +/- 0.04332478 (86.65%) (init = 0.05)
+    ds:              0.10000000 +/- 0.06592318 (65.92%) (init = 0.1)
+    vp:              5.0923e-05 +/- 0.01191642 (23400.83%) (init = 5.092306e-05)
+    dx:              0.24 (fixed)
+    half_life_surf:  inf (fixed)
+    half_life_int:   4.35 (fixed)
+    alpha:           1 (fixed)
+    beta:            0.8673779 (fixed)
+    Jsin:            0 (fixed)
+    Jcin:            0.021 (fixed)
+    eta_s_max:       60 (fixed)
+    eta_s_zero:      0.02325581 (fixed)
+    gamma:           0.02325581 (fixed)
+[[Correlations]] (unreported correlations are < 0.100)
+    C(dc, vp) = -0.995
+    C(dc, ds) = 0.391
+    C(ds, vp) = -0.295
+       95.45%    68.27%    _BEST_    68.27%    95.45%
+ dc:      -inf      -inf   0.05000  +0.01878  +0.04139
+ ds:      -inf      -inf   0.10000  +0.02173  +0.04793
+ vp:      -inf      -inf   0.00005  +0.00006  +0.00013
+> /Users/surbhitwagle/Desktop/Surbhit/Work/PhD/2020/PhD/MPIBR/PhD-Project/Mo/Python-code/ampa-dynamics/GluA2DataAnalysis.py(354)FitModel()
+-> return FittedCalculation(out2.params,x,data)
+(Pdb) Parameters([('dc', <Parameter 'dc', value=0.050000000024329166 +/- 0.0433, bounds=[0.05:0.5]>), ('ds', <Parameter 'ds', value=0.10000000001604317 +/- 0.0659, bounds=[0.1:1.0]>), ('vp', <Parameter 'vp', value=5.092306461831897e-05 +/- 0.0119, bounds=[0.0:1.5]>), ('dx', <Parameter 'dx', value=0.24 (fixed), bounds=[-inf:inf]>), ('half_life_surf', <Parameter 'half_life_surf', value=inf (fixed), bounds=[-inf:inf]>), ('half_life_int', <Parameter 'half_life_int', value=4.35 (fixed), bounds=[-inf:inf]>), ('alpha', <Parameter 'alpha', value=1 (fixed), bounds=[-inf:inf]>), ('beta', <Parameter 'beta', value=0.8673779188794962 (fixed), bounds=[-inf:inf]>), ('Jsin', <Parameter 'Jsin', value=0 (fixed), bounds=[-inf:inf]>), ('Jcin', <Parameter 'Jcin', value=0.021 (fixed), bounds=[-inf:inf]>), ('eta_s_max', <Parameter 'eta_s_max', value=60 (fixed), bounds=[-inf:inf]>), ('eta_s_zero', <Parameter 'eta_s_zero', value=0.023255813953488372 (fixed), bounds=[-inf:inf]>), ('gamma', <Parameter 'gamma', value=0.023255813953488372 (fixed), bounds=[-inf:inf]>)])
+saved figures to: {./GluA2_Soma_norm_dist_100_uM_with_fit}
+saved figures to: {./Cytoplasm_surface_ratio_100_uM}
+saved figures to: {./GluA2_cyto_surf_ratio_dist_100_uM}
+Raw_GluA2_Soma_norm_dist_100
+saved figures to: {./Raw_GluA2_Soma_norm_dist_100}
+Raw_GluA2_Sum_norm_dist_100
+saved figures to: {./Raw_GluA2_Sum_norm_dist_100}
