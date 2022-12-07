@@ -6,7 +6,7 @@ Created on Wed Oct 19 14:00:30 2022
 @author: surbhitwagle
 """
 
-from AMPA_model import *
+from AMPA_model2 import *
 import csv
 import json
 from lmfit import conf_interval, minimize,Minimizer, Parameters, Parameter, report_fit, printfuncs
@@ -22,6 +22,7 @@ from scipy.stats import ks_2samp, kruskal
 
 import scikit_posthocs as sps
 import seaborn as sns
+import SNSPlottingWidget as SNSP
 Lengths = np.array([25,50,75,100,150,200])
 scale = 0.240
 COLORS = ["#005f73","#9b2226","#CA6702","#337357"]
@@ -34,8 +35,7 @@ class GluA2DataAnalysis():
     def LoadData(self, bins,exclude_cells = []):
         """
         Assumes a folder strucutre. Give the outermost folder which contains folder for each image
-        the internal folder should be as
-        df ==> cell_i ==> Rois ==> int-GLuA2/suef-GluA2/GFP
+       df ==> cell_i ==> Rois ==> int-GLuA2/suef-GluA2/GFP
         """
         # fig,(ax0,ax1) = plt.subplots(1, 2,figsize=(20, 12), sharey=True)
         files = os.listdir(self.df) 
@@ -162,7 +162,7 @@ class GluA2DataAnalysis():
         d_vec = data[:,index]
         norm_data = data / d_vec[:,None]
         return norm_data 
-    def PlotBinnedStats2P(self,x,mean_1,mean_2,num_sample,lab1,lab2,xlab,ylab,title_string,file_name,bin_size,rat=1,soma_rat=1,width=10,height=8,fsize=16,save_it = 1,fit_exp =0,set_axis_label=1):
+    def PlotBinnedStats2P(self,x,mean_1,mean_2,sem1,sem2,num_sample,lab1,lab2,xlab,ylab,title_string,file_name,bin_size,rat=1,soma_rat=1,width=10,height=8,fsize=16,save_it = 1,fit_exp =0,set_axis_label=1):
         fig = plt.figure(figsize=(width, height))
         ax = fig.add_subplot(111) # the big subplot
         ax0 = fig.add_subplot(211)
@@ -175,14 +175,18 @@ class GluA2DataAnalysis():
         ax.spines['right'].set_color('none')
         ax.tick_params(labelcolor='w', top=False, bottom=False, left=False, right=False)
         
-        if not (mean_1 == [] and std_1 == []):
+        if not (mean_1 == [] and sem1 == []):
             # ax0.errorbar(x+bin_size/2,mean_1,std_1,label=lab1,color=COLORS[0],marker='o',linestyle="None",markersize=0.1 )
-            ax0.plot(x,mean_1,color=COLORS[0],marker=None,ls='--' )
+            ax0.plot(x,mean_1,color=COLORS[0],marker=None,ls='-',label=lab1)
+            CI1 = 1.96 * sem1
+            ax0.fill_between(x, (mean_1-CI1), (mean_1+CI1), color=COLORS[0], alpha=.1)
             # ax0.plot(x+bin_size/2,mean_1-std_1,color=COLORS[0],marker=None,ls='--' )
         if not (mean_2 == [] and std_2 == []):
             print("in mean 2")
             # ax1.errorbar(x+bin_size/2,mean_2,std_2,label=lab2,color=COLORS[1],marker='d',linestyle="None",markersize=0.1 )
-            ax1.plot(x,mean_2,color=COLORS[1],marker=None,ls='--' )
+            CI2 = 1.96 * sem2
+            ax1.plot(x,mean_2,color=COLORS[1],marker=None,ls='-',label=lab2 )
+            ax1.fill_between(x, (mean_2-CI2), (mean_2+CI2), color=COLORS[1], alpha=.1)
             # ax1.plot(x+bin_size/2,mean_2-std_2,color=COLORS[1],marker=None,ls='--' )
         if set_axis_label ==1:
             ax.set_xlabel(xlab,fontsize=fsize)
@@ -191,7 +195,8 @@ class GluA2DataAnalysis():
         # plt.title(title_string,fontsize=fsize)
        
         folder = "."
-       
+        # ax0.set_ylim([0.5,1.5])
+        # ax1.set_ylim([0.5,1.5])
         if fit_exp == 1:
             # breakpoint()
             # y1_fit, r1_squared = ExpFit(x,mean_1)
@@ -240,7 +245,7 @@ class GluA2DataAnalysis():
             fig.suptitle(title_string,fontsize=fsize)
        
         folder = "."
-        plt.ylim([0.5,1.5])
+        # plt.ylim([0.5,1.5])
         if fit_exp == 1:
             # breakpoint()
             # y1_fit, r1_squared = ExpFit(x,mean_1)
@@ -474,8 +479,8 @@ def FitModel(x,data,rat,soma_rat,pars=[]):
         #  parameter ranges
         
         #  parameters to fit
-        fit_paramas.add('dc',dc_init,min=0)
-        fit_paramas.add('ds',ds_init,min=0)
+        fit_paramas.add('dc',dc_init,min=0,max=dc_max)
+        fit_paramas.add('ds',ds_init,min=0,max=ds_max)
         fit_paramas.add('vp',vp_init,min=0)
         
         # rat = 1.1 # ratio between alpha and beta
@@ -485,12 +490,13 @@ def FitModel(x,data,rat,soma_rat,pars=[]):
         fit_paramas.add('half_life_surf',float('inf'),vary=False)
         fit_paramas.add('half_life_int',1.95,vary=False)
         fit_paramas.add('alpha',1,vary=False)
-        fit_paramas.add('beta',1/rat,vary=False)
+        fit_paramas.add('beta',1,vary=False)
         fit_paramas.add('Jsin',0.021/soma_rat,vary=False)
         fit_paramas.add('Jcin',0.021,vary=False)
         fit_paramas.add('eta_s_max',60,vary=False)
         fit_paramas.add('eta_s_zero',1/(15*60),vary=False)
         fit_paramas.add('gamma',1/(15*60),vary=False)
+        fit_paramas.add('rat',rat,vary=False)
     else:
         fit_paramas = pars
     
@@ -516,11 +522,11 @@ def resudual(paras,x=None,data=None):
     # breakpoint()
     
     ps_needed,pc_needed = GetRequiredDist(paras,x,data)
-    print(x,data,ps_needed,pc_needed)
+    # print(x,data,ps_needed,pc_needed)
     ps_res = data[0] - ps_needed 
     pc_res = data[1] - pc_needed
     resd = np.stack((ps_res,pc_res))
-    return resd #resd.flatten()
+    return pc_res #resd.flatten()
 
 def GetSlidingWindowMean(data,window_len,mode='same'):
     try:
@@ -577,12 +583,13 @@ def GetParamAndModelDist(paras):
     eta_s_max = paras['eta_s_max'].value
     eta_s_zero = paras['eta_s_zero'].value
     gamma = paras['gamma'].value
+    rat = paras['rat'].value
     # breakpoint()
     # return model distribution
-    return RunModel(D_s,D_c,V_p,half_life_surf,half_life_int,alpha,beta,Jsin,Jcin,eta_s_max,eta_s_zero,gamma,delta_x)
+    return RunModel(D_s,D_c,V_p,half_life_surf,half_life_int,alpha,beta,Jsin,Jcin,eta_s_max,eta_s_zero,gamma,delta_x,rat)
     
-def RunModel(D_s,D_c,V_p,half_life_surf,half_life_int,alpha,beta,Jsin,Jcin,eta_s_max,eta_s_zero,gamma,delta_x):
-    SP_model1 = DendriteWithStochasticSpinesConstantV(D_s,D_c,V_p,half_life_surf,half_life_int,alpha,beta,Jsin,Jcin,eta_s_max,eta_s_zero,gamma);
+def RunModel(D_s,D_c,V_p,half_life_surf,half_life_int,alpha,beta,Jsin,Jcin,eta_s_max,eta_s_zero,gamma,delta_x,rat):
+    SP_model1 = DendriteWithStochasticSpinesConstantV(D_s,D_c,V_p,half_life_surf,half_life_int,alpha,beta,Jsin,Jcin,eta_s_max,eta_s_zero,gamma,rat);
     x1,ps_dist,pc_dist = SP_model1.solveModel(delta_x)
     # breakpoint()
     ps_sum,pc_sum = SP_model1.IntegralBC(ps_dist, pc_dist, delta_x)
@@ -647,7 +654,7 @@ if __name__ == "__main__":
         SURF_SW_data = GetSlidingWindowMeanMatrix(surf_glua2_data[dend_len],int(win_len/scale))[:,offset:x1.shape[0]+offset]
         INT_SW_data = GetSlidingWindowMeanMatrix(int_glua2_data[dend_len],int(win_len/scale))[:,offset:x1.shape[0]+offset]
        
-        breakpoint()
+        # breakpoint()
        
         GFP_SOMA_NORM_data = G2DA.GetSomaNormDistribution(GFP_SW_data,index=0)
         SURF_SOMA_NORM_data = G2DA.GetSomaNormDistribution(SURF_SW_data,index=0)
@@ -660,25 +667,69 @@ if __name__ == "__main__":
         SURF_SW_mean = SURF_SOMA_NORM_data.mean(axis=0)
         SURF_SW_std = SURF_SOMA_NORM_data.std(axis=0)
         SURF_SW_sem = SURF_SW_std/np.sqrt(SURF_SOMA_NORM_data.shape[0])
+        SURF_SW_sem_n = SURF_SW_sem/np.sqrt(GFP_SW_mean)
         
         INT_SW_mean = INT_SOMA_NORM_data.mean(axis=0)
         INT_SW_std = INT_SOMA_NORM_data.std(axis=0)
         INT_SW_sem = INT_SW_std/np.sqrt(INT_SOMA_NORM_data.shape[0])
+        INT_SW_sem_n = INT_SW_sem/np.sqrt(GFP_SW_mean)
         
-        SURF_density = SURF_SW_mean/GFP_SW_mean
+        SURF_density = SURF_SW_mean/np.sqrt(GFP_SW_mean)
         INT_density = INT_SW_mean/GFP_SW_mean
+        
+        
+        # ratio calculations
+        
+        norm_surf_data = SURF_SOMA_NORM_data/np.sqrt(GFP_SW_mean)
+        norm_int_data = INT_SOMA_NORM_data/GFP_SW_mean
+        
+        
+        
+        # breakpoint()
+        uni_wise_ratios = norm_int_data/norm_surf_data
+        ratios_mean = uni_wise_ratios.mean(axis=0)
+        ratios_std =  uni_wise_ratios.std(axis=0)
+        ratios_sem = ratios_std/np.sqrt(uni_wise_ratios.shape[0])
+        
+        
+        popt,yi_fit, ri_squared,chi_squ = SNSP.ExpFit("NormE",x1,ratios_mean,ratios_sem,0,+1,"GluA2")
+        CI2 = 1.96 * ratios_sem
+        fig, ax = plt.subplots()
+        ax.plot(x1,ratios_mean,label='Cyto/Surf',color='b')
+        ax.fill_between(x1, (ratios_mean-CI2), (ratios_mean+CI2), color='b', alpha=.1)
+        plt.plot(x1,yi_fit,color='r',label="exp-fit")
+        ax.set_xlabel("Dendritic distance in microns",fontsize=14)
+        ax.set_ylabel("Cytoplasmic/Surface GluA2 ratio",fontsize=14)
+        plt.legend()
+        plt.savefig("./Figures/RatioDist.png",dpi=300)
+        plt.show()
+        
+        # breakpoint()
         
         CI = 1.96 * GFP_SW_sem
         fig, ax = plt.subplots()
-        ax.plot(x1,GFP_SW_mean)
-        ax.fill_between(x1, (GFP_SW_mean-CI), (GFP_SW_mean+CI), color='b', alpha=.1)
+        ax.plot(x1,np.sqrt(GFP_SW_mean),label='GFP^(1/2)')
+        ax.fill_between(x1, (np.sqrt(GFP_SW_mean)-CI), (np.sqrt(GFP_SW_mean)+CI), color='b', alpha=.1)
         ax.set_xlabel("Dendritic distance in microns",fontsize=14)
         ax.set_ylabel("Normalized Intensity",fontsize=14)
+       
+        width = 5
+        x1_map2_mean = np.load("./Final_MAP2_{}_{}.npy".format(width,dend_len))
+        x1_map2_sem = np.load("./Final_MAP2_sem_{}_{}.npy".format(width,dend_len))
+        
+        ax.plot(x1_map2_mean[0],x1_map2_mean[1],label='MAP2')
+        ci1 = 1.96 * x1_map2_sem[1]
+        ax.fill_between(x1_map2_mean[0], (x1_map2_mean[1]-ci1), (x1_map2_mean[1]+ci1), color='r', alpha=.1)
+        plt.legend()
         plt.savefig(op_folder+"GFP_dist.png",dpi=300)
+        
         plt.show()
+        # np.save("../../Mo/Python-code/ampa-dynamics/Final_MAP2_std_{}_{}.npy".format(width,l1),x1_std)
+        # np.save("../../Mo/Python-code/ampa-dynamics/Final_MAP2_sem_{}_{}.npy".format(width,l1),x1_sem)
+        
         # # SURF_density = SURF_density
         # # INT_density = int_density
-        ratios = SURF_density/INT_density
+        ratios = INT_density/SURF_density
         # plt.plot(bins[1:int(dend_len/scale)],SURF_density[:int(dend_len/scale)-1],label='surf')
         # plt.plot(bins[1:int(dend_len/scale)],INT_density[:int(dend_len/scale)-1],label='int')
         # plt.plot(bins[1:int(dend_len/scale)],ratios[:int(dend_len/scale)-1],label='ratio')
@@ -687,6 +738,22 @@ if __name__ == "__main__":
         # plt.show()
         
         breakpoint()
-        G2DA.PlotBinnedStats2P(x1,  SURF_density, INT_density,SURF_SW_data.shape[0],  'surface','cytoplasmic', 'Dendritic distance (in microns)', "Normalized fluoresence intensity", "GluA2 Fluorescent Distribution (N={0})".format(SURF_SW_data.shape[0]), \
-                               op_folder+"GluA2_SW_Soma_norm_dist_"+str(dend_len)+"_uM_with_fit", bin_size,rat = ratios.mean(),soma_rat=ratios.mean(),save_it = 1,fit_exp=0,set_axis_label=1)
+        # norm with GFP
+        G2DA.PlotBinnedStats2P(x1,  SURF_density, INT_density,SURF_SW_sem_n,INT_SW_sem_n,SURF_SW_data.shape[0],  'surface','cytoplasmic', 'Dendritic distance (in microns)', "GFP Normalized fluoresence intensity", "GluA2 Fluorescent Distribution (N={0})".format(SURF_SW_data.shape[0]), \
+                               "./Figures/GluA2_SW_Soma_norm_GFP_norm_dist_"+str(dend_len)+"_uM_without_fit", bin_size,rat = popt[0],soma_rat=ratios.mean(),save_it = 0,fit_exp=1,set_axis_label=1)
+        
+        
+        # G2DA.PlotBinnedStats1P(x1, ratios,[], , [], 'cytoplasmic/surface', '', 'Dendritic distance (in microns)', "cytoplasmic/surface ratio", "Distribution of cytoplasmic/surface GluA2 fluorescent intensity (N={0})".format(ratio_int_surf[l].shape[0]), \
+        #                       op_folder+"GluA2_cyto_surf_ratio_dist_"+str(l)+"_uM", bin_size,save_it = 1,fit_exp=0,set_axis_label=ax_label)
+           
+        # norm with MAP2
+        # min_size = min(x1_map2_mean.shape[1],SURF_SW_mean.shape[0])
+        # SURF_density_MAP2 = SURF_SW_mean[0:min_size]/x1_map2_mean[1,0:min_size]
+        # INT_density_MAP2  = INT_SW_mean[0:min_size]/x1_map2_mean[1,0:min_size]
+        # SURF_SW_sem_MAp2 = SURF_SW_sem[0:min_size]/x1_map2_mean[1,0:min_size]
+        # INT_SW_sem_MAP2 = INT_SW_sem[0:min_size]/x1_map2_mean[1,0:min_size]
+        
+        # G2DA.PlotBinnedStats2P(x1,  SURF_density_MAP2, INT_density_MAP2,SURF_SW_sem_MAp2,INT_SW_sem_MAP2,SURF_SW_data.shape[0],  'surface','cytoplasmic', 'Dendritic distance (in microns)', "MAP2 Normalized fluoresence intensity", "GluA2 Fluorescent Distribution (N={0})".format(SURF_SW_data.shape[0]), \
+        #                        op_folder+"GluA2_SW_Soma_norm_MAP2_norm_dist_"+str(dend_len)+"_uM_with_fit", bin_size,rat = ratios.mean(),soma_rat=ratios.mean(),save_it = 1,fit_exp=1,set_axis_label=1)
+ 
  

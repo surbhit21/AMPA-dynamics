@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Tue Mar  1 16:22:34 2022
+Created on Thu Oct 27 10:38:01 2022
 
 @author: surbhitwagle
 """
+
 
 from scipy.integrate import solve_bvp
 import numpy as np
@@ -110,7 +111,7 @@ def CreateFolderRecursive(folder):
 
 L= 500
 class DendriteWithStochasticSpinesConstantV():
-    def __init__(self,D_s,D_c,V_p,half_life_surf,half_life_int,alpha,beta,Jsin,Jcin,eta_s_max,eta_s_zero,gamma):
+    def __init__(self,D_s,D_c,V_p,half_life_surf,half_life_int,alpha,beta,Jsin,Jcin,eta_s_max,eta_s_zero,gamma,rat):
         self.D_s = D_s   # in uM^2/s
         self.D_c = D_c   # in uM^2/s
         self.V_p = V_p    # in uM/s
@@ -125,6 +126,7 @@ class DendriteWithStochasticSpinesConstantV():
         self.eta_s_max = eta_s_max;
         self.eta_s_zero = eta_s_zero;
         self.gamma = gamma;
+        self.rat=rat
         
     def updateModelParams(self,D_s = None,D_c = None,V_p = None,half_life_surf = None,half_life_int = None\
                           ,alpha = None,beta = None,Jsin = None,Jcin = None,eta_s_max=None,eta_s_zero = None,gamma=None):
@@ -161,8 +163,8 @@ class DendriteWithStochasticSpinesConstantV():
         ps,dps,pc,dpc = y
         # print(dps[0],dps[-1],dpc[0],dpc[-1])
         return [dps,\
-                ((self.alpha+self.Lamda_ps)/self.D_s)*ps  - (self.beta/self.D_s)*pc, dpc,\
-                ((self.beta+self.Lamda_pc)/self.D_c)*pc + (self.V_p/self.D_c)*dpc - (self.alpha/self.D_c)*ps\
+                ((self.alpha+self.Lamda_ps)/self.D_s)*ps  - (self.alpha*np.exp(-self.rat*x)/self.D_s)*pc, dpc,\
+                ((self.alpha*np.exp(-self.rat*x)+self.Lamda_pc)/self.D_c)*pc + (self.V_p/self.D_c)*dpc - (self.alpha/self.D_c)*ps\
                ]
                              
         
@@ -179,7 +181,7 @@ class DendriteWithStochasticSpinesConstantV():
 #         print(x)
         # params=np.array([L]);
         y = np.zeros((4,x.size))
-        soln = solve_bvp(self.fun, self.bc, x, y,max_nodes=1e+9)
+        soln = solve_bvp(self.fun, self.bc, x, y,max_nodes=1e+9,verbose=2)
 #         print(len(soln))
         ps_dist = soln.sol(x)[0]
         pc_dist = soln.sol(x)[2]
@@ -259,7 +261,7 @@ class DendriteWithStochasticSpinesConstantV():
 def SaveFigures(filename,ext_list = [".png",".svg",".pdf"]):
     for ext in ext_list:
         plt.savefig(filename+ext,dpi=300)
-def RunSim5(delta_x,v_p,D_c,D_s):
+def RunSim5(delta_x,v_p,D_c,D_s,rat):
     # print("=========================================================================================")
     # print(" v_p =%.5f \t|| Jin = %0.2f \t|| alpha =%0.2f \t|| beta =%0.2f \t|| eta_s0 = %.2e \n"%(v_p,Jcin,alpha,beta,eta_s0),end="")
     # print("=========================================================================================")
@@ -269,7 +271,7 @@ def RunSim5(delta_x,v_p,D_c,D_s):
     beta = 0.8673779188794962
     eta_s0=1/(15*60)
     gamma=1/(15*60)  #D_s,D_c,V_p,half_life_surf,half_life_int,alpha,beta,Jsin,Jcin,eta_s_max,eta_s_zero,gamma
-    SP_model1 = DendriteWithStochasticSpinesConstantV(D_s,D_c,v_p,float('inf'),1.95,alpha,beta,0.01637936,Jcin,60,eta_s0,gamma);
+    SP_model1 = DendriteWithStochasticSpinesConstantV(D_s,D_c,v_p,float('inf'),1.95,alpha,alpha,0.01637936,Jcin,60,eta_s0,gamma,rat);
     sim_id = "002";
     x,ps_dist,pc_dist = SP_model1.solveModel(delta_x)
     # breakpoint()
@@ -329,10 +331,10 @@ def RunSim5(delta_x,v_p,D_c,D_s):
     return ps_dist,pc_dist
 # _ = widgets.interact(RunSim5,v_p = (0,.01,0.001), Jcin = (0.001,0.1,0.005), alpha = (0.001,1,0.1),beta = (0.01,1,0.1),eta_s0 = (0, 0.1, .01),gamma=(1/43,0.1,0.01))
 # RunSim5(0.24,0.02,0.052,0.021)
-# RunSim5(0.24,4.06e-04,1.0654e-05,0.26144088)
+# RunSim5(0.24,4.06e-04,0.2,0.026144088,0.0043)
 # RunSim5(0.24,4.06e-03,3,0.26144088)
-# RunSim5(0.24, 9.2417e-04, 5.7359e-05 , 3.1866e-04)
-RunSim5(0.24, 2.0044e-05 ,0.14,0.09)
+# RunSim5(0.24, 9.2417e-04, 5.7359e-05 , 3.1866e-04,0.0043)
+# RunSim5(0.24,0.042,1.5,6.7)
 # RunSim5(0.24,0.003,.57,0.05)
 # RunSim5(0.24,0.02,.04,0.7)
 # RunSim5(0.24,0.016,.76,0.1)
@@ -341,3 +343,6 @@ RunSim5(0.24, 2.0044e-05 ,0.14,0.09)
 # breakpoint()
 # RunSim5(1e-4,0.021,alpha=0.01,beta = 0.02,eta_s0=1/100,gamma=1/43)
 # RunSim5(0,0.021,alpha=0.01,beta = 0.02,eta_s0=1/100,gamma=1/43)
+
+# RunSim5(0.24, 2.0044e-05 ,0.14,0.09,0.00439753)
+RunSim5(0.24, 0.03892047,6.0164127,0.01055499,0.00439753)

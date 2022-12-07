@@ -21,7 +21,7 @@ from scipy.stats import ks_2samp, kruskal
 
 import scikit_posthocs as sps
 import seaborn as sns
-Lengths = np.array([25,50,75,100,150,200])
+Lengths = np.array([25,50,75,100,150,550])
 scale = 0.240
 COLORS = ["#005f73","#9b2226","#CA6702","#337357"]
 bin_size = 5
@@ -459,7 +459,7 @@ def FitModel(x,data,rat,soma_rat,pars=[]):
         dc_min = 0.05
         dc_max = 10
         dc_init = np.random.uniform(dc_min,dc_max)
-        ds_min = 0.1
+        ds_min = 0.05
         ds_max = 1.0
         ds_init = np.random.uniform(ds_min,ds_max)
         vp_min = 0.0
