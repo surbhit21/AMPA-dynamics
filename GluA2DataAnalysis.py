@@ -198,13 +198,15 @@ class GluA2DataAnalysis():
             # ax.plot(x+bin_size/2,y1_fit,'o--',c=COLORS[0],label=lab1+"-fit, $r^2$ =%0.2f" %(r1_squared))
             # ax.plot(x+bin_size/2,y2_fit,'o--',c=COLORS[1],label=lab2+"-fit, $r^2$ =%0.2f" %(r2_squared))
             x1,ps_mean,pc_mean,ps_rsquared,pc_rsquared,params = FitModel(x,np.stack((mean_1,mean_2)),rat,soma_rat)
+            ps_chiseq = ChiSq(mean_1, ps_mean, std_1)
+            pc_chiseq = ChiSq(mean_2, pc_mean, std_2)
             print(params)
             print(ps_rsquared,pc_rsquared)
             # x3,ps_l,pc_l,ps_l_rsquared,pc_l_rsquared,params_u = FitModel(x,np.stack((mean_1-std_1,mean_2-std_2)),rat,soma_rat,params)
             # x2,ps_u,pc_u,ps_u_rsquared,pc_u_rsquared,params_l = FitModel(x,np.stack((mean_1+std_1,mean_2+std_2)),rat,soma_rat,params)
             
-            ax0.plot(x1,ps_mean,c=COLORS[0],label=lab1+"-fit")
-            ax1.plot(x1,pc_mean,c=COLORS[1],label=lab2+"-fit" )
+            ax0.plot(x1,ps_mean,c=COLORS[0],label=lab1+"-fit $\chi^2$ =%0.2f" %ps_chiseq)
+            ax1.plot(x1,pc_mean,c=COLORS[1],label=lab2+"-fit $\chi^2$ =%0.2f" %pc_chiseq)
             # ax0.plot(x3,ps_l,c=COLORS[0],linestyle='--')
             # ax0.plot(x2,ps_u,c=COLORS[0],linestyle='--')
             # ax1.plot(x3,pc_l,c=COLORS[1],linestyle='--')
@@ -579,9 +581,10 @@ def GetParamAndModelDist(paras):
     return RunModel(D_s,D_c,V_p,half_life_surf,half_life_int,alpha,beta,Jsin,Jcin,eta_s_max,eta_s_zero,gamma,delta_x)
     
 def RunModel(D_s,D_c,V_p,half_life_surf,half_life_int,alpha,beta,Jsin,Jcin,eta_s_max,eta_s_zero,gamma,delta_x):
-    SP_model1 = DendriteWithStochasticSpinesConstantV(D_s,D_c,V_p,half_life_surf,half_life_int,alpha,beta,Jsin,Jcin,eta_s_max,eta_s_zero,gamma);
-    x1,ps_dist,pc_dist = SP_model1.solveModel(delta_x)
-    ps_sum,pc_sum = SP_model1.IntegralBC(ps_dist, pc_dist, delta_x)
+    SP_model1 = DendriteWithStochasticSpinesConstantV(D_s,D_c,V_p,half_life_surf,half_life_int,alpha,beta,Jsin,Jcin,eta_s_max,eta_s_zero,gamma,delta_x);
+    ps_dist,pc_dist = SP_model1.solveNumerical()
+    x1 = SP_model1.x_grid
+    ps_sum,pc_sum = SP_model1.IntegralBC(ps_dist, pc_dist)
     # returning sum normalized distribution
     return x1,ps_dist, pc_dist
     
@@ -603,9 +606,20 @@ def R_seq(ydata,y_fit):
     r_squared = 1 - (ss_res / ss_tot)
     return r_squared
 
+def ChiSq(yd,y_fit,sigmas):
+    nzs = np.nonzero(sigmas)
+    # print(nzs)
+    r_yd = np.take(yd,nzs)
+    r_yf = np.take(y_fit,nzs)
+    r_sgs = np.take(sigmas,nzs)
+    residuals = r_yd - r_yf
+    chi_squ = np.sum((residuals/r_sgs)**2)
+    return chi_squ
 if __name__ == "__main__":
-    G2DA = GluA2DataAnalysis("/Users/surbhitwagle/Desktop/Surbhit/Work/PhD/2020/PhD/MPIBR/PhD-Project/Experimental_collab/Max-Kracht/single images")
-   
+    # G2DA = GluA2DataAnalysis("/Users/surbhitwagle/Desktop/Surbhit/Work/PhD/2020/PhD/MPIBR/PhD-Project/Experimental_collab/Max-Kracht/single images")
+    G2DA = GluA2DataAnalysis("/Users/surbhitwagle/Desktop/Surbhit/Work/PhD/2020/PhD/MPIBR/PhD-Project/Experimental_collab/Max-Kracht/GluA2/Control")
+
+
     int_data, surf_data,ratio_int_surf,\
         total_ratio_int_surf,soma_int_data,\
             soma_surf_data, raw_int_data,raw_surf_data = G2DA.LoadData(bins,exclude_cells=[])

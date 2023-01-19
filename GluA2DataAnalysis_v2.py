@@ -144,7 +144,7 @@ class GluA2DataAnalysis():
             rr,cc = arr.shape
             binned_sum = np.zeros((len(bins),cc))
             digitized = bins.searchsorted(arr[:,num_col])
-            # breakpoint()
+            breakpoint()
             digitized[0] = digitized[1]
             for c in range(0,cc):
                 binned_sum[:,c] = np.bincount(digitized, weights=arr[:,c], minlength=len(bins))

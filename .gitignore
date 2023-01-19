@@ -120,7 +120,13 @@ dmypy.json
 Figures/
 Data/
 optimization/
-.svg
-.pdf
-.png
-
+Time-depndent/
+HPC-runs/
+*.svg
+*.pdf
+*.png
+*.npy
+*.gif
+*.pptx
+SampleAnim.py
+SNSPlottingWidget.py
