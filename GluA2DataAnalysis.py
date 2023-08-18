@@ -132,7 +132,7 @@ class GluA2DataAnalysis():
             csvReader = csv.reader(csvDataFile)
             # loop over rows
             for row in csvReader:
-        
+               print(len(row))
                # add cell [0] to list of dates
                csv_data.append(row)
         return np.asarray(csv_data[1:]).astype(float)
@@ -197,10 +197,11 @@ class GluA2DataAnalysis():
             # y2_fit, r2_squared = ExpFit(x,mean_2)
             # ax.plot(x+bin_size/2,y1_fit,'o--',c=COLORS[0],label=lab1+"-fit, $r^2$ =%0.2f" %(r1_squared))
             # ax.plot(x+bin_size/2,y2_fit,'o--',c=COLORS[1],label=lab2+"-fit, $r^2$ =%0.2f" %(r2_squared))
-            x1,ps_mean,pc_mean,ps_rsquared,pc_rsquared,params = FitModel(x,np.stack((mean_1,mean_2)),rat,soma_rat)
-            ps_chiseq = ChiSq(mean_1, ps_mean, std_1)
-            pc_chiseq = ChiSq(mean_2, pc_mean, std_2)
-            print(params)
+            x1,ps_mean,pc_mean,ps_rsquared,pc_rsquared,params,ps_chiseq,pc_chiseq = FitModel(x,np.stack((mean_1,mean_2)),rat,soma_rat,std_1,std_2)
+            # ps_chiseq = ChiSq(mean_1, ps_mean, std_1)
+            # pc_chiseq = ChiSq(mean_2, pc_mean, std_2)
+            # print(params)
+            breakpoint()
             print(ps_rsquared,pc_rsquared)
             # x3,ps_l,pc_l,ps_l_rsquared,pc_l_rsquared,params_u = FitModel(x,np.stack((mean_1-std_1,mean_2-std_2)),rat,soma_rat,params)
             # x2,ps_u,pc_u,ps_u_rsquared,pc_u_rsquared,params_l = FitModel(x,np.stack((mean_1+std_1,mean_2+std_2)),rat,soma_rat,params)
@@ -298,7 +299,7 @@ class GluA2DataAnalysis():
             # y2_fit, r2_squared = ExpFit(x,mean_2)
             # ax.plot(x+bin_size/2,y1_fit,'o--',c=COLORS[0],label=lab1+"-fit, $r^2$ =%0.2f" %(r1_squared))
             # ax.plot(x+bin_size/2,y2_fit,'o--',c=COLORS[1],label=lab2+"-fit, $r^2$ =%0.2f" %(r2_squared))
-            x1,ps,pc,ps_rsquared,pc_rsquared,params = FitModel(x,np.stack((mean_1,mean_2)),rat,soma_rat)
+            x1,ps,pc,ps_rsquared,pc_rsquared,params = FitModel(x,np.stack((mean_1,mean_2)),rat,soma_rat,std_1,std_2)
             print(params)
             ax.plot(x1,pc,c=COLORS[0],label=lab1+"-fit, $r^2$ =%0.2f" %(pc_rsquared))
             ax.plot(x1,ps,c=COLORS[1],label=lab2+"-fit, $r^2$ =%0.2f" %(ps_rsquared))
@@ -326,8 +327,8 @@ class GluA2DataAnalysis():
         pos = np.arange(1,2,1)
         # breakpoint()
         # for i in range(0,fractions.shape[0]):
-        bp1 = ax.boxplot(fractions[0],widths = 0.25,positions=pos,showmeans=True,meanline=True,labels=lab[0:1],showfliers=False)
-        bp2 = ax.boxplot(fractions[1],widths = 0.25,positions=1+pos,showmeans=True,meanline=True,labels=lab[1:2],showfliers=False)
+        bp1 = ax.boxplot(fractions[0],widths = 0.25,positions=pos,showmeans=True,meanline=True,labels=lab[0:1],showfliers=True)
+        bp2 = ax.boxplot(fractions[1],widths = 0.25,positions=1+pos,showmeans=True,meanline=True,labels=lab[1:2],showfliers=True)
         
         p_values = sps.posthoc_dunn(fractions, p_adjust = 'bonferroni')
         x_points = np.asarray((pos,1+pos)).flatten()
@@ -454,7 +455,7 @@ def ExpFit(xdata,ydata):
     r_squared = 1 - (ss_res / ss_tot)
     return y_fit,r_squared
 
-def FitModel(x,data,rat,soma_rat,pars=[]):
+def FitModel(x,data,rat,soma_rat,sigma_ps,sigma_pc,pars=[]):
     if pars == []:
         fit_paramas = Parameters()
         np.random.seed(2022)
@@ -482,7 +483,7 @@ def FitModel(x,data,rat,soma_rat,pars=[]):
         # rat = 1.1 # ratio between alpha and beta
         #fixed parameters
         
-        fit_paramas.add('dx',scale,vary=False)
+        fit_paramas.add('dx',0.012,vary=False)
         fit_paramas.add('half_life_surf',float('inf'),vary=False)
         fit_paramas.add('half_life_int',1.95,vary=False)
         fit_paramas.add('alpha',1,vary=False)
@@ -508,7 +509,7 @@ def FitModel(x,data,rat,soma_rat,pars=[]):
     # printfuncs.report_ci(ci)
     # breakpoint()
     
-    return FittedCalculation(out2.params,x,data)
+    return FittedCalculation(out2.params,x,data,sigma_ps,sigma_pc)
 def resudual(paras,x=None,data=None):
     
     # pc_needed = pc_needed/(pc_binned.sum()*delta_x)
@@ -542,7 +543,7 @@ def GetSlidingWindowMeanMatrix(data,window_len,mode='same'):
     op_matrix = np.asarray(op_matrix)
     return op_matrix
 def GetRequiredDist(paras,x,data):
-    
+    # breakpoint()
     x1,ps_model, pc_model = GetParamAndModelDist(paras)
     G2DA1 = GluA2DataAnalysis("/")
     # binning the model distribution in the same size
@@ -588,7 +589,7 @@ def RunModel(D_s,D_c,V_p,half_life_surf,half_life_int,alpha,beta,Jsin,Jcin,eta_s
     # returning sum normalized distribution
     return x1,ps_dist, pc_dist
     
-def FittedCalculation(paras,x,data):
+def FittedCalculation(paras,x,data,sigma_ps,sigma_pc):
     x1,ps_dist,pc_dist = GetParamAndModelDist(paras)
     ps_needed,pc_needed = GetRequiredDist(paras,x,data)
     # GetParamAndModelDist
@@ -597,8 +598,10 @@ def FittedCalculation(paras,x,data):
     # breakpoint()
     ps_rsquared = R_seq(data[0],ps_needed)
     pc_rsquared = R_seq(data[1],pc_needed)
-    # breakpoint()
-    return x1[0:x_n],(ps_dist/ps_dist[0])[0:x_n],(pc_dist/pc_dist[0])[0:x_n],ps_rsquared,pc_rsquared,paras
+    breakpoint()
+    chi_ps = ChiSq(data[0],ps_needed,sigma_ps)
+    chi_pc = ChiSq(data[0],ps_needed,sigma_pc)
+    return x1[0:x_n],(ps_dist/ps_dist[0])[0:x_n],(pc_dist/pc_dist[0])[0:x_n],ps_rsquared,pc_rsquared,paras,chi_ps,chi_pc
 def R_seq(ydata,y_fit):
     residuals = ydata- y_fit
     ss_res = np.sum(residuals**2)
@@ -617,7 +620,7 @@ def ChiSq(yd,y_fit,sigmas):
     return chi_squ
 if __name__ == "__main__":
     # G2DA = GluA2DataAnalysis("/Users/surbhitwagle/Desktop/Surbhit/Work/PhD/2020/PhD/MPIBR/PhD-Project/Experimental_collab/Max-Kracht/single images")
-    G2DA = GluA2DataAnalysis("/Users/surbhitwagle/Desktop/Surbhit/Work/PhD/2020/PhD/MPIBR/PhD-Project/Experimental_collab/Max-Kracht/GluA2/Control")
+    G2DA = GluA2DataAnalysis("/Users/surbhitwagle/Desktop/Surbhit/Work/PhD/2020/PhD/MPIBR/PhD-Project/Experimental_collab/Max-Kracht/GluA2/Control/old_data")
 
 
     int_data, surf_data,ratio_int_surf,\
@@ -641,7 +644,7 @@ if __name__ == "__main__":
         sum_norm_raw_surf[l] = G2DA.GetSumNormDistribution(raw_surf_data[l])
     soma_raw_int_ratio = soma_int_data[:,0,-1]/soma_surf_data[:,0,-1]
     num_somas = soma_int_data.shape[0]
-    # breakpoint()
+    breakpoint()
     norm_int = {}
     norm_surf = {}
     mean_int = {}
@@ -660,7 +663,7 @@ if __name__ == "__main__":
     # mean_int = json.load(f)
     # f.close()
     # x1,ps,pc,ps_rsquared,pc_rsquared,params = FitModel(np.arange(0, 100, bin_size),np.stack((mean_surf,mean_int)),rat=1.3)
-    
+    breakpoint()
     for l in Lengths[3:4]:
         
         norm_int[l] = G2DA.GetSomaNormDistribution(int_data[l])
@@ -668,18 +671,18 @@ if __name__ == "__main__":
         int_std = int_data[l].std(axis=0)
         mean_int[l] = norm_int[l].mean(axis=0)
         std_int[l] = (int_std[1]/int_mean[1] + int_std/int_mean)*mean_int[l]
-        sem_int[l] = std_int[l]/np.sqrt(std_int[l].shape[0])
+        sem_int[l] = std_int[l]/np.sqrt(int_data[l].shape[0])
         
         surf_mean = surf_data[l].mean(axis=0)
         surf_std = surf_data[l].std(axis=0)
         norm_surf[l] =  G2DA.GetSomaNormDistribution(surf_data[l])
         mean_surf[l] = norm_surf[l].mean(axis=0)
-        std_surf[l] =(surf_std[1]/surf_mean[1] + surf_std/surf_mean)*mean_surf[l]
-        sem_surf[l] = std_surf[l]/np.sqrt(std_surf[l].shape[0])
+        std_surf[l] = (surf_std[1]/surf_mean[1] + surf_std/surf_mean)*mean_surf[l]
+        sem_surf[l] = std_surf[l]/np.sqrt(int_data[l].shape[0])
         
         ratio_mean[l] = np.nanmean(ratio_int_surf[l],axis=0)
         ratio_std[l] = np.nanstd(ratio_int_surf[l],axis=0)
-        ratio_sem[l] = ratio_std[l]/np.sqrt(ratio_std[l].shape[0])
+        ratio_sem[l] = ratio_std[l]/np.sqrt(int_data[l].shape[0])
         x = np.arange(0, l, bin_size)
         x1 = np.arange(0,l,scale)
         # breakpoint()
@@ -690,14 +693,15 @@ if __name__ == "__main__":
         # breakpoint()
         ax_label = 1
         G2DA.PlotBinnedStats2P(x,  mean_surf[l][1:x.shape[0]+1], mean_int[l][1:x.shape[0]+1], sem_surf[l][1:x.shape[0]+1],sem_int[l][1:x.shape[0]+1],surf_data[l].shape[0],  'surface','cytoplasmic', 'Dendritic distance (in microns)', "Normalized fluoresence intensity", "GluA2 Fluorescent Distribution (N={0})".format(norm_int[l].shape[0]), \
-                                op_folder+"GluA2_Soma_norm_dist_"+str(l)+"_uM_with_fit", bin_size,rat = total_ratio_int_surf[l].mean(),soma_rat=soma_raw_int_ratio.mean(),save_it = 1,fit_exp=1,set_axis_label=ax_label)
+                                op_folder+"GluA2_Soma_norm_dist_"+str(l)+"_uM_with_fit", bin_size,rat = total_ratio_int_surf[l].mean(),soma_rat=np.Inf,save_it = 1,fit_exp=1,set_axis_label=ax_label)
+        breakpoint()
         G2DA.PlotBinnedStatsWithCI(x,  mean_surf[l][1:x.shape[0]+1], mean_int[l][1:x.shape[0]+1], sem_surf[l][1:x.shape[0]+1],sem_int[l][1:x.shape[0]+1],surf_data[l].shape[0],  'surface','cytoplasmic', 'Dendritic distance (in microns)', "Normalized fluoresence intensity", "GluA2 Fluorescent Distribution (N={0})".format(norm_int[l].shape[0]), \
                                op_folder+"GluA2_Soma_norm_dist_"+str(l)+"_uM_with_CI", bin_size,rat = total_ratio_int_surf[l].mean(),save_it = 1,fit_exp=0,set_axis_label=ax_label)
         G2DA.PlotRatio([total_ratio_int_surf[l],soma_raw_int_ratio], ["Dendritic (N={0})".format(total_ratio_int_surf[l].shape[0]),"Somatic (N={0})".format(num_somas)], "GluA2", "Ratio (Cytoplasm/Surface)", "Ratio of cytoplasmic to surface GluA2 fluorescent intensity", "Cytoplasm_surface_ratio_"+str(l)+"_uM",save_it=1,set_axis_label=ax_label)
         G2DA.PlotBinnedStats1P(x, ratio_mean[l][1:x.shape[0]+1],[], ratio_sem[l][1:x.shape[0]+1], [], 'cytoplasmic/surface', '', 'Dendritic distance (in microns)', "cytoplasmic/surface ratio", "Distribution of cytoplasmic/surface GluA2 fluorescent intensity (N={0})".format(ratio_int_surf[l].shape[0]), \
                               op_folder+"GluA2_cyto_surf_ratio_dist_"+str(l)+"_uM", bin_size,save_it = 1,fit_exp=0,set_axis_label=ax_label)
         # G2DA.PlotMultiTwoProtein(x1,np.transpose(soma_norm_raw_surf[l]),np.transpose(soma_norm_raw_int[l]),'surface','cytoplasmic','Dendritic distance (in uM)', "Soma Normalized fluorescent value","GluA2 Distribution (N={0})".format(soma_norm_raw_surf[l].shape[0]),\
-                                  # op_folder+"Raw_GluA2_Soma_norm_dist_"+str(l), save_it = 1,set_axis_label=ax_label)
+        #                            op_folder+"Raw_GluA2_Soma_norm_dist_"+str(l), save_it = 1,set_axis_label=ax_label)
         # G2DA.PlotMultiTwoProtein(x1,np.transpose(sum_norm_raw_surf[l]),np.transpose(sum_norm_raw_int[l]),'surface','cytoplasmic','Dendritic distance (in uM)', "Sum normalized fluorescent value","GluA2 Distribution (N={0})".format(soma_norm_raw_surf[l].shape[0]),\
                                   # "Raw_GluA2_Sum_norm_dist_"+str(l), adjust_y=1,save_it = 1,set_axis_label=ax_label)
     

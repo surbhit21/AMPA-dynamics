@@ -6,7 +6,7 @@ Created on Wed Oct 19 14:00:30 2022
 @author: surbhitwagle
 """
 
-from AMPA_model2 import *
+from AMPA_model import *
 import csv
 import json
 from lmfit import conf_interval, minimize,Minimizer, Parameters, Parameter, report_fit, printfuncs
@@ -615,8 +615,8 @@ def R_seq(ydata,y_fit):
     return r_squared
 
 if __name__ == "__main__":
-    G2DA = GluA2DataAnalysis("/Users/surbhitwagle/Desktop/Surbhit/Work/PhD/2020/PhD/MPIBR/PhD-Project/Experimental_collab/Max-Kracht/single images")
-   
+    # G2DA = GluA2DataAnalysis("/Users/surbhitwagle/Desktop/Surbhit/Work/PhD/2020/PhD/MPIBR/PhD-Project/Experimental_collab/Max-Kracht/single images")
+    G2DA = GluA2DataAnalysis("/Users/surbhitwagle/Desktop/Surbhit/Work/PhD/2020/PhD/MPIBR/PhD-Project/Experimental_collab/Max-Kracht/GluA2/Control/old_data")
     int_glua2_data, surf_glua2_data,ratio_int_surf,\
         total_ratio_int_surf,soma_int_data,\
             soma_surf_data, raw_int_data,raw_surf_data,GFP_data = G2DA.LoadData(bins,exclude_cells=[])
@@ -740,7 +740,7 @@ if __name__ == "__main__":
         breakpoint()
         # norm with GFP
         G2DA.PlotBinnedStats2P(x1,  SURF_density, INT_density,SURF_SW_sem_n,INT_SW_sem_n,SURF_SW_data.shape[0],  'surface','cytoplasmic', 'Dendritic distance (in microns)', "GFP Normalized fluoresence intensity", "GluA2 Fluorescent Distribution (N={0})".format(SURF_SW_data.shape[0]), \
-                               "./Figures/GluA2_SW_Soma_norm_GFP_norm_dist_"+str(dend_len)+"_uM_without_fit", bin_size,rat = popt[0],soma_rat=ratios.mean(),save_it = 0,fit_exp=1,set_axis_label=1)
+                               "./Figures/GluA2_SW_Soma_norm_GFP_norm_dist_"+str(dend_len)+"_uM_without_fit", bin_size,rat = popt[0],soma_rat=ratios.mean(),save_it = 0,fit_exp=0,set_axis_label=1)
         
         
         # G2DA.PlotBinnedStats1P(x1, ratios,[], , [], 'cytoplasmic/surface', '', 'Dendritic distance (in microns)', "cytoplasmic/surface ratio", "Distribution of cytoplasmic/surface GluA2 fluorescent intensity (N={0})".format(ratio_int_surf[l].shape[0]), \

@@ -5,9 +5,13 @@ Created on Tue Mar  1 16:22:34 2022
 
 @author: surbhitwagle
 using code styling from PEP8 - https://peps.python.org/pep-0008/
+
+the main file used to generate mRNA plots for the AMPA paper
 """
 
 import json
+import matplotlib
+matplotlib.use("Qt5Agg")
 import matplotlib.pyplot as plt
 import math
 import numpy as np
@@ -156,10 +160,11 @@ class DendriteWithStochasticSpinesConstantV():
 
     def solveNumerical(self):
         y = np.zeros((4,self.x_grid.size))
-        soln = solve_bvp(self.fun, self.bc, self.x_grid, y,max_nodes=1e+9, verbose=2,tol=1e-11, bc_tol=1e-10)
+        soln = solve_bvp(self.fun, self.bc, self.x_grid, y,max_nodes=1e+9, verbose=1,tol=1e-3, bc_tol=1e-8)
         # breakpoint()
-        ps_dist = soln.sol(self.x_grid)[0]
-        pc_dist = soln.sol(self.x_grid)[2]
+        ps_dist = soln.y[0]
+        pc_dist = soln.y[2]
+        self.x_grid = soln.x
         # breakpoint()
         print(self.bc(soln.y[:,0],soln.y[:,-1]))
         return ps_dist, pc_dist
@@ -227,12 +232,12 @@ def SaveFigures(filename,ext_list = [".png",".svg",".pdf"]):
         
 
 def RunSim5(delta_x,v_p,D_c,D_s):
-    Jcin= 0.021
-    alpha= 0.0011904761904761906
-    beta = 0.001032592760570829
-    eta_s0= 1/43
+    Jcin= 0.05
+    alpha= 1.5e-3
+    beta = alpha*2
+    eta_s0= 1e-3
     gamma= 1/(43) 
-    SP_model1 = DendriteWithStochasticSpinesConstantV(D_s,D_c,v_p,float('inf'),1.95,alpha,beta,0,Jcin,60,eta_s0,gamma,delta_x);
+    SP_model1 = DendriteWithStochasticSpinesConstantV(D_s,D_c,v_p,float('inf'),4.5,alpha,beta,0,Jcin,60,eta_s0,gamma,delta_x);
     sim_id = "002";
     ps_dist,pc_dist = SP_model1.solveNumerical()
     # x=np.arange(0,L,delta_x)
@@ -257,19 +262,19 @@ def RunSim5(delta_x,v_p,D_c,D_s):
         json.dump(param_dict,fp)
     fp.close()
     ps_spine = SP_model1.omega*(1/(1+ (SP_model1.gamma/(SP_model1.eta*ps_dist))))
-    fig,ax = plt.subplots(figsize=(10, 8))
-    fsize=16
-    ax.plot(SP_model1.x_grid,ps_dist,label=r"$p_s$",color = color_surf,linewidth=3.0)
-    ax.plot(SP_model1.x_grid,pc_dist,label=r"$P_c$",color = color_cyto,linewidth=3.0)
-    ax.plot(SP_model1.x_grid,ps_spine,label=r"$P_{spine}$",color = color_spine,linewidth=3.0)
-    fig.tight_layout()
-    plt.legend(prop={'size': fsize})
-    SaveFigures("./ModelDist")
-    plt.show()
+    # fig,ax = plt.subplots(figsize=(10, 8))
+    # fsize=16
+    # ax.plot(SP_model1.x_grid,ps_dist,label=r"$p_s$",color = color_surf,linewidth=3.0)
+    # ax.plot(SP_model1.x_grid,pc_dist,label=r"$P_c$",color = color_cyto,linewidth=3.0)
+    # ax.plot(SP_model1.x_grid,ps_spine,label=r"$P_{spine}$",color = color_spine,linewidth=3.0)
+    # fig.tight_layout()
+    # plt.legend(prop={'size': fsize})
+    # SaveFigures("./ModelDist")
+    # plt.show()
     # breakpoint()
     return ps_dist,pc_dist,ps_spine
 
-# RunSim5(0.024,4.06e-04,0.2,0.02)
+RunSim5(0.24,4.06e-04,0.2,0.2)
 
 
 def RunModelWithFile(param_file):

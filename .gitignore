@@ -120,7 +120,7 @@ dmypy.json
 Figures/
 Data/
 optimization/
-Time-depndent/
+Time-dependent/
 HPC-runs/
 *.svg
 *.pdf

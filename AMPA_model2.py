@@ -11,13 +11,14 @@ from scipy.integrate import solve_bvp
 import numpy as np
 import scipy.optimize as opt       # import root-finding algorithm
 import sympy as sp                 # Python toolbox for symbolic maths
+import matplotlib
 import matplotlib.pyplot as plt
 # from mpl_toolkits.mplot3d import Axes3D # Toolbox for rendring 3D figures
 # from mpl_toolkits import mplot3d   # Toolbox for rendring 3D figures
 # @title Figure Settings
 # import ipywidgets as widgets  # interactive display
 # from ipywidgets import interact
-# from pathlib import Path
+from pathlib import Path
 import math
 from pylab import plot, show, savefig, xlim, figure, ylim, legend, boxplot, setp, axes
 # %config InlineBackend.figure_format = 'retina'
@@ -343,6 +344,6 @@ def RunSim5(delta_x,v_p,D_c,D_s,rat):
 # breakpoint()
 # RunSim5(1e-4,0.021,alpha=0.01,beta = 0.02,eta_s0=1/100,gamma=1/43)
 # RunSim5(0,0.021,alpha=0.01,beta = 0.02,eta_s0=1/100,gamma=1/43)
-
+RunSim5(0.24,1.1309585561316738e-05,0.10000081562301009 , 0.4230844182281098,0.45)
 # RunSim5(0.24, 2.0044e-05 ,0.14,0.09,0.00439753)
-RunSim5(0.24, 0.03892047,6.0164127,0.01055499,0.00439753)
+# RunSim5(0.24, 0.03892047,6.0164127,0.01055499,0.00439753)
