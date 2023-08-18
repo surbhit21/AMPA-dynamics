@@ -123,7 +123,7 @@ omega =  SP_model1.omega;    # same as eta_s_max in steady state model file
 eta =  SP_model1.eta;        # same as eta_s_zero in steady state model file
 gamma =  SP_model1.gamma
 y_init_orig = y0.T.flatten()#np.zeros(y0.T.flatten().shape) #np.zeros(y0.T.flatten().shape) #
-dt = 0.002
+dt = 0.02
 t_max = 2000
 times =  100
 t = np.arange(0,t_max,times*dt)  #times for which to save the y values
@@ -156,14 +156,14 @@ def DynamicSimRun(model_params,t_range,t_eval,y_init,method="LSODA",dense_op=Tru
     soln = solve_ivp(AMPATimeDynamics,t_range,y_init,args=(model_params), \
                      method=method,dense_output=dense_op,vectorize=vectorize,lband=lband,uband=uband,rtol=rtol,atol=atol,max_step=max_step,t_eval = t_eval)
     return soln
-def PlasticityExperiment(beta,location,up_or_down_factor):
+def PlasticityExperiment(beta,lo,x_sdx,up_or_down_factor):
     beta_updated = beta.copy()
     print(up_or_down_factor)
-    beta_updated[location] *= up_or_down_factor
+    beta_updated[lo-x_sdx:lo+x_sdx] *= up_or_down_factor
     return beta_updated
 
 
-def PattersonGluA1Plasticity(beta,location):
+def PattersonGluA1Plasticity(beta,lo,x_sdx):
     """
     step zero, we simulate the model in steady state for 10 secs
     step First, we step-increase the exocytosis rate (beta) to f1 folds in 50 seconds
@@ -177,12 +177,17 @@ def PattersonGluA1Plasticity(beta,location):
     os.makedirs(op_dir, exist_ok=True)
     print("date and time:", date_time)
     sim_time = 0
+    time_steps = [0]
+    factors = [1]
     """
     Step 0
     """
-    f0 = 1
-    beta_step0 = PlasticityExperiment(beta, location, f0)
-    t_step0 = 10  # running for 50 secs
+    f0 = 1 #increase by a factor of 1
+    t_step0 = 30  # running for 50 secs
+    factors.append(f0)
+    time_steps.append(t_step0)
+    beta_step0 = PlasticityExperiment(beta, lo,x_sdx, f0)
+
     model_params = [D_c, D_s, V_p, Lamda_pc, Lamda_ps, alpha * np.ones(P_c_init.shape), beta_step0, eta, omega, gamma,
                     Jcin, Jsin, dx]
     plt.plot(x_grid, beta_step0 / beta_step0[0])
@@ -198,9 +203,11 @@ def PattersonGluA1Plasticity(beta,location):
     """
     Step 1
     """
-    f1 = 260
-    beta_step1 = PlasticityExperiment(beta,location,f1)
-    t_step1 = 50        #running for 50 secs
+    f1 = 26
+    beta_step1  = PlasticityExperiment(beta, lo,x_sdx, f1)
+    t_step1 = 60       #running for 50 secs
+    factors.append(f1)
+    time_steps.append(t_step1)
     model_params = [D_c,D_s,V_p,Lamda_pc,Lamda_ps,alpha*np.ones(P_c_init.shape),beta_step1,eta,omega,gamma,Jcin,Jsin,dx]
     plt.plot(x_grid,beta_step1/beta_step1[0])
     plt.show()
@@ -213,42 +220,46 @@ def PattersonGluA1Plasticity(beta,location):
     print("Step 1 finished at simulation time  = ", sim_time)
     saveoutput(op_dir, date_time, data_mat, total_tps, 1, "./ModelParams.json")
     beta_profile = np.concatenate((beta_profile ,np.ones(soln1.t.shape)*beta_step1[location]))
-    """
-    Step 2
-    """
-    f2 = 60
-    beta_step2 = PlasticityExperiment(beta, location, f2)
-    t_step2 = 10        #running for 10 secs
-    # breakpoint()
-    """
-    chaning y_init to the last time_step value of step 1
-    """
-    new_y_init = soln1.y[:,-1]
-    model_params2 = [D_c, D_s, V_p, Lamda_pc, Lamda_ps, alpha * np.ones(P_c_init.shape), beta_step2, eta, omega, gamma,
-                    Jcin, Jsin, dx]
-    plt.plot(x_grid, beta_step2/beta_step2[0])
-    plt.show()
-    t_eval2 = np.arange(0, t_step2, dt)
-    t_range2 = [0, t_step2]
-    soln2 = DynamicSimRun(model_params2,t_range2,t_eval2,new_y_init,max_step=100*dt,method='RK45')
-
-    data_mat = np.concatenate((data_mat, soln2.y), axis=1)
-    total_tps = np.concatenate((total_tps, (soln2.t + sim_time)))
-    saveoutput(op_dir, date_time, data_mat, total_tps, 2, "./ModelParams.json")
-    sim_time += t_step2
-    print("Step 2 finished at simulation time  = ", sim_time)
-    beta_profile = np.concatenate((beta_profile, np.ones(soln2.t.shape) * beta_step2[location]))
+    # """
+    # Step 2
+    # """
+    # f2 = 6
+    # beta_step2 = lasticityExperiment(beta, lo,x_sdx, f2)
+    # t_step2 = 10        #running for 10 secs
+    # factors.append(f2)
+    # time_steps.append(t_step2)
+    # # breakpoint()
+    # """
+    # chaning y_init to the last time_step value of step 1
+    # """
+    # new_y_init = soln1.y[:,-1]
+    # model_params2 = [D_c, D_s, V_p, Lamda_pc, Lamda_ps, alpha * np.ones(P_c_init.shape), beta_step2, eta, omega, gamma,
+    #                 Jcin, Jsin, dx]
+    # plt.plot(x_grid, beta_step2/beta_step2[0])
+    # plt.show()
+    # t_eval2 = np.arange(0, t_step2, dt)
+    # t_range2 = [0, t_step2]
+    # soln2 = DynamicSimRun(model_params2,t_range2,t_eval2,new_y_init,max_step=100*dt,method='RK45')
+    #
+    # data_mat = np.concatenate((data_mat, soln2.y), axis=1)
+    # total_tps = np.concatenate((total_tps, (soln2.t + sim_time)))
+    # saveoutput(op_dir, date_time, data_mat, total_tps, 2, "./ModelParams.json")
+    # sim_time += t_step2
+    # print("Step 2 finished at simulation time  = ", sim_time)
+    # beta_profile = np.concatenate((beta_profile, np.ones(soln2.t.shape) * beta_step2[location]))
     """
     Step last
     """
     finf = 1
-    beta_steplast = PlasticityExperiment(beta, location, finf)
+    beta_steplast  = PlasticityExperiment(beta, lo,x_sdx, finf)
     t_steplast = 10  # running for 10 secs
+    factors.append(finf)
+    time_steps.append(t_steplast)
     # breakpoint()
     """
     chaning y_init to the last time_step value of step 2
     """
-    new_y_init = soln2.y[:, -1]
+    new_y_init = data_mat[:, -1]
     model_params2 = [D_c, D_s, V_p, Lamda_pc, Lamda_ps, alpha * np.ones(P_c_init.shape), beta_steplast, eta, omega, gamma,
                      Jcin, Jsin, dx]
     plt.plot(x_grid, beta_steplast / beta_steplast[0])
@@ -268,21 +279,37 @@ def PattersonGluA1Plasticity(beta,location):
     data_mat = np.concatenate((data_mat, soln_last.y),axis=1)
     saveoutput(op_dir, date_time, data_mat,total_tps, 100,"./ModelParams.json")
     plt.plot(total_tps,beta_profile)
+    breakpoint()
+    savesimsettings(3,time_steps,factors,[loc],x_span,"{0}/protocol_{1}".format(op_dir,date_time))
     plt.show()
 
-def savesimsettings(num_steps,time_points,factors,locations,protocol_file):
-    assert num_steps == len(time_points) + 1
-    assert num_steps == len(factors) + 1
-    with open('somefile.txt', 'a') as the_file:
+def savesimsettings(num_steps,time_steps,factors,locations,x_span,protocol_file):
+    assert num_steps == len(time_steps) - 1
+    assert num_steps == len(factors) - 1
+    with open(protocol_file, 'a') as the_file:
         the_file.write('#Step = {}\n'.format(num_steps))
-        the_file.write("time points = ",time_points)
+        the_file.write("time points = ")
+        for t in time_steps:
+            the_file.write(str(t))
+            the_file.write("\t")
         the_file.write("\n")
-        the_file.write("factors = ",factors)
+        the_file.write("factors = ")
+        for f in factors:
+            the_file.write(str(f))
+            the_file.write("\t")
         the_file.write("\n")
-        the_file.write("location = ",locations)
+        the_file.write("location = ")
+        for l in locations:
+            the_file.write(str(l))
+            the_file.write("\t")
         the_file.write("\n")
+        the_file.write("x span = {}\n".format(x_span))
+
         the_file.write("parameter chaned = beta")
         the_file.close()
 beta_array = beta*np.ones(P_c_init.shape)
-location = int(100/dx)
-PattersonGluA1Plasticity(beta_array,location)
+loc = 100
+location = int(loc/dx)
+x_span = 3
+x_span_dx = int(x_span/dx)
+PattersonGluA1Plasticity(beta_array,location,x_span_dx)

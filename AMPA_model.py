@@ -233,7 +233,7 @@ def SaveFigures(filename,ext_list = [".png",".svg",".pdf"]):
 
 def RunSim5(delta_x,v_p,D_c,D_s):
     Jcin= 0.05
-    alpha= 1.5e-3
+    alpha= 1.5e-4
     beta = alpha*2
     eta_s0= 1e-3
     gamma= 1/(43) 
