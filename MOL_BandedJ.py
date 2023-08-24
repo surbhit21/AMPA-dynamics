@@ -161,6 +161,11 @@ def PlasticityExperiment(beta,lo,x_sdx,up_or_down_factor):
     print(up_or_down_factor)
     beta_updated[lo-x_sdx:lo+x_sdx] *= up_or_down_factor
     return beta_updated
+def Bleach(y,lo,x_sdx):
+    pc_l,ps_l,psp_l = GetProteindata(y)
+    ps_l[lo-x_span_dx:lo+x_span_dx] = 0
+    psp_l[lo-x_span_dx:lo+x_span_dx] = 0
+    return np.vstack((np.vstack((pc_l, ps_l)), psp_l)).T.flatten()
 
 
 def PattersonGluA1Plasticity(beta,lo,x_sdx):
@@ -203,7 +208,8 @@ def PattersonGluA1Plasticity(beta,lo,x_sdx):
     """
     Step 1
     """
-    f1 = 26
+    f1 = 6
+    new_y_init = data_mat[:, -1] #Bleach(data_mat[:, -1],lo,x_sdx)
     beta_step1  = PlasticityExperiment(beta, lo,x_sdx, f1)
     t_step1 = 60       #running for 50 secs
     factors.append(f1)
@@ -213,7 +219,7 @@ def PattersonGluA1Plasticity(beta,lo,x_sdx):
     plt.show()
     t_range = [0,t_step1]
     t_eval = np.arange(0, t_step1, dt)
-    soln1=DynamicSimRun(model_params,t_range,t_eval,y_init,max_step=100*dt,method='RK45')
+    soln1=DynamicSimRun(model_params,t_range,t_eval,new_y_init,max_step=100*dt,method='RK45')
     total_tps = np.concatenate((total_tps,(soln1.t+sim_time)))
     sim_time += t_step1
     data_mat = np.concatenate((data_mat, soln1.y), axis=1)
@@ -259,7 +265,7 @@ def PattersonGluA1Plasticity(beta,lo,x_sdx):
     """
     chaning y_init to the last time_step value of step 2
     """
-    new_y_init = data_mat[:, -1]
+    new_y_init = data_mat[:,-1]
     model_params2 = [D_c, D_s, V_p, Lamda_pc, Lamda_ps, alpha * np.ones(P_c_init.shape), beta_steplast, eta, omega, gamma,
                      Jcin, Jsin, dx]
     plt.plot(x_grid, beta_steplast / beta_steplast[0])
@@ -279,13 +285,13 @@ def PattersonGluA1Plasticity(beta,lo,x_sdx):
     data_mat = np.concatenate((data_mat, soln_last.y),axis=1)
     saveoutput(op_dir, date_time, data_mat,total_tps, 100,"./ModelParams.json")
     plt.plot(total_tps,beta_profile)
-    breakpoint()
+    # breakpoint()
     savesimsettings(3,time_steps,factors,[loc],x_span,"{0}/protocol_{1}".format(op_dir,date_time))
     plt.show()
 
 def savesimsettings(num_steps,time_steps,factors,locations,x_span,protocol_file):
-    assert num_steps == len(time_steps) - 1
-    assert num_steps == len(factors) - 1
+    # assert num_steps == len(time_steps) - 1
+    # assert num_steps == len(factors) - 1
     with open(protocol_file, 'a') as the_file:
         the_file.write('#Step = {}\n'.format(num_steps))
         the_file.write("time points = ")

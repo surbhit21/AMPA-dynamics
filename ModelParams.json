@@ -1,1 +1,1 @@
-{"D_c": 0.2, "D_s": 0.2, "V_p": 0.000406, "half_life_surf": Infinity, "half_life_int": 4.5, "alpha": 0.00015, "beta": 0.0003, "gamma": 0.023255813953488372, "eta": 0.001, "omega": 60, "dx": 0.24, "Jsin": 0, "Jcin": 0.05}
+{"D_c": 0.2, "D_s": 0.2, "V_p": 0.000406, "half_life_surf": Infinity, "half_life_int": 4.5, "alpha": 0.00015, "beta": 0.0003, "gamma": 0.0011111111111111111, "eta": 1e-05, "omega": 60, "dx": 0.24, "Jsin": 0, "Jcin": 0.021}

@@ -232,11 +232,11 @@ def SaveFigures(filename,ext_list = [".png",".svg",".pdf"]):
         
 
 def RunSim5(delta_x,v_p,D_c,D_s):
-    Jcin= 0.05
+    Jcin= 0.021
     alpha= 1.5e-4
     beta = alpha*2
-    eta_s0= 1e-3
-    gamma= 1/(43) 
+    eta_s0= 1e-5
+    gamma= 1/(15*60)
     SP_model1 = DendriteWithStochasticSpinesConstantV(D_s,D_c,v_p,float('inf'),4.5,alpha,beta,0,Jcin,60,eta_s0,gamma,delta_x);
     sim_id = "002";
     ps_dist,pc_dist = SP_model1.solveNumerical()
@@ -264,9 +264,9 @@ def RunSim5(delta_x,v_p,D_c,D_s):
     ps_spine = SP_model1.omega*(1/(1+ (SP_model1.gamma/(SP_model1.eta*ps_dist))))
     # fig,ax = plt.subplots(figsize=(10, 8))
     # fsize=16
-    # ax.plot(SP_model1.x_grid,ps_dist,label=r"$p_s$",color = color_surf,linewidth=3.0)
-    # ax.plot(SP_model1.x_grid,pc_dist,label=r"$P_c$",color = color_cyto,linewidth=3.0)
-    # ax.plot(SP_model1.x_grid,ps_spine,label=r"$P_{spine}$",color = color_spine,linewidth=3.0)
+    # ax.plot(SP_model1.x_grid,ps_dist/ps_dist[0],label=r"$p_s$",color = color_surf,linewidth=3.0)
+    # ax.plot(SP_model1.x_grid,pc_dist/pc_dist[0],label=r"$P_c$",color = color_cyto,linewidth=3.0)
+    # ax.plot(SP_model1.x_grid,ps_spine/SP_model1.omega,label=r"$P_{spine}$",color = color_spine,linewidth=3.0)
     # fig.tight_layout()
     # plt.legend(prop={'size': fsize})
     # SaveFigures("./ModelDist")
