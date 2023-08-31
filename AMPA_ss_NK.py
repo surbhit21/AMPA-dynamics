@@ -1,17 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Tue Mar  1 16:22:34 2022
+Created on Wed Mar  8 14:57:33 2023
 
 @author: surbhitwagle
-using code styling from PEP8 - https://peps.python.org/pep-0008/
-
-the main file used to generate mRNA plots for the AMPA paper
 """
 
 import json
-import matplotlib
-matplotlib.use("Qt5Agg")
 import matplotlib.pyplot as plt
 import math
 import numpy as np
@@ -109,6 +104,7 @@ def CreateFolderRecursive(folder):
         Path(folder).mkdir(parents=True, exist_ok=True)
 
 L= 500
+# ob1 = DendriteWithStochasticSpinesConstantV(0.1,0.1,1e-4)
 class DendriteWithStochasticSpinesConstantV():
     """
         Class for the steady state solution of  model equations:
@@ -123,6 +119,22 @@ class DendriteWithStochasticSpinesConstantV():
 
     def __init__(self, D_s, D_c, V_p, half_life_surf, half_life_int, alpha,
                  beta, Jsin, Jcin, omega, eta,gamma,dx):
+        """
+            Initializing the class object with the parameters of the equations:
+            transport parameters: D_s (surface Diff. conef), D_c (cytoplasm Diff. conef),D_s (cytoplasm net drift)
+            half-lifes: half_life_surf, half_life_int, degradation rate = ln(2)/half_life
+            exchange rates: alpha, beta
+            influx at x = 0, Jsin, Jcin: influx into surface and cytoplasm from soma
+            Max spine capacity/slot numbers: omega
+            spine uptake rate: eta
+            removal rate from spine: gamma
+            spatial discritization: dx
+            x_grid = array of discritized space from 0 to L in dx step size
+            =========================================================
+            Instantiate the object as:
+            obj = DendriteWithStochasticSpinesConstantV(D_s, D_c, V_p, half_life_surf, half_life_int, alpha,
+                 beta, Jsin, Jcin, omega, eta,gamma,dx)
+        """
         self.D_s = D_s   # in uM^2/s
         self.D_c = D_c   # in uM^2/s
         self.V_p = V_p    # in uM/s
@@ -143,7 +155,8 @@ class DendriteWithStochasticSpinesConstantV():
     
     def fun(self, x, y):
         """
-        function that deines the darivatives
+            function that deines the darivatives
+            see equations: 11 to 14 in the manuscript
         """
         ps,dps,pc,dpc = y
         return [dps,\
@@ -154,45 +167,88 @@ class DendriteWithStochasticSpinesConstantV():
         
     def bc(self,ya,yb):
         """
-            function for boundary condition values
+            function for boundary conditions for Ps and Pc at x = 0 and x = L
+            see equations: 19 to 22 in the manuscript
+            
         """
         return np.array([ya[1] + self.Jsin/self.D_s, yb[1],  ya[3] - self.V_p*ya[2]/self.D_c + self.Jcin/self.D_c,yb[3]- self.V_p*yb[2]/self.D_c])
 
     def solveNumerical(self):
+        
+        """
+            Numerical solution of the steady state solution of the equations defined by the class
+            y = intial guess of the values for the derivative function fun
+            soln = steady state solution of the function,, check solve_bvp for more detals (https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.solve_bvp.html)
+            
+             =========================================================
+             returns the steady state distribution of Ps and Pc
+        """
         y = np.zeros((4,self.x_grid.size))
-        soln = solve_bvp(self.fun, self.bc, self.x_grid, y,max_nodes=1e+9, verbose=1,tol=1e-3, bc_tol=1e-8)
-        # breakpoint()
+        soln = solve_bvp(self.fun, self.bc, self.x_grid, y,max_nodes=1e+9, tol=1e-3, bc_tol=1e-8)
         ps_dist = soln.y[0]
         pc_dist = soln.y[2]
         self.x_grid = soln.x
-        # breakpoint()
-        print(self.bc(soln.y[:,0],soln.y[:,-1]))
         return ps_dist, pc_dist
         
     def GetODERoots(self):
+        """
+            Function to get the roots of the fourth order equation: 16 in the mansucript
+            roots are calculated as the eigen values of the matrix A in equation: 15 in the manuscript
+            =========================================================
+            returns the steady state distribution of Ps and Pc
+        """
         A =  [[0, 0, 1, 0],
               [0, 0, 0, 1],
               [(self.alpha+self.Lamda_ps)/self.D_s, -self.beta/self.D_s, 0, 0],
               [-self.alpha/self.D_c, (self.beta+self.Lamda_pc)/self.D_c, 0, self.V_p/self.D_c]];
         # breakpoint()
+        p0 = 1
+        p1 = -self.V_p/self.D_c
+        p2 = -(self.beta+self.Lamda_pc)/self.D_c -(self.alpha+self.Lamda_ps) /self.D_s
+        p3 = self.V_p*(self.alpha + self.Lamda_ps)/(self.D_c*self.D_s)
+        p4 = (self.Lamda_pc*self.beta + self.Lamda_ps*self.alpha + self.Lamda_pc*self.Lamda_ps)/(self.D_c*self.D_s)
+        polynom = [p0,p1,p2,p3,p4]
+        poly_roots = np.roots(polynom)
+        
         ss_eigen_values,ss_eig_vec = np.linalg.eig(A);
+        desc = self.Discriminant(p0,p1,p2,p3,p4)
+        breakpoint()
         return ss_eigen_values,ss_eig_vec
    
-    def Descriminant(self):
-        a = 1;
-        b = -self.V_p/self.D_c;
-        c = -((self.beta+self.Lamda_pc)/self.D_c + (self.alpha+self.Lamda_ps)/self.D_s);
-        d = self.V_p*(self.alpha+self.Lamda_ps)/(self.D_c*self.D_s);
-        e = (self.Lamda_ps*self.beta + self.alpha*self.Lamda_pc + self.Lamda_pc*self.Lamda_ps)/(self.D_s*self.D_c);
+    def Discriminant(self,a,b,c,d,e):
         
-        des = 256*(a**3)*(e**3) - 192*(a**2)*(b*d)*(e**2) - 128*(a*c*e)**2 + 144*(a*d)**2*(c*e) - 27*(a**2)*(d**4) 
+        """
+            Function to get discriminant of the fourth order equation: 16 in the mansucript
+            poly = ax^4 + bx^3 + cx^2 + dx + e
+            discriminant = https://en.wikipedia.org/wiki/Discriminant#Degree_4
+            =========================================================
+            returns the discriminant
+        """
+        # a = 1;
+        # b = -self.V_p/self.D_c;
+        # c = -((self.beta+self.Lamda_pc)/self.D_c + (self.alpha+self.Lamda_ps)/self.D_s);
+        # d = self.V_p*(self.alpha+self.Lamda_ps)/(self.D_c*self.D_s);
+        # e = (self.Lamda_ps*self.beta + self.alpha*self.Lamda_pc + self.Lamda_pc*self.Lamda_ps)/(self.D_s*self.D_c);
+        
+        des = 256*(a**3)*(e**3) - 192*(a**2)*(b*d)*(e**2) - 128*(a*c*e)**2 + 144*((a*d)**2)*(c*e) - 27*(a**2)*(d**4) 
         + 144*a*c*((b*e)**2) - 6*a*e*((b*d)**2) - 80*a*b*d*e*(c**2) + 18*a*b*c*(d**3) + 16*a*e*(c**4) - 4*a*(c**3)*(d**2) 
-        - 27*(b**4)*(e**2) + 18*c*d*e*(b**3) - 4*(b*d)**3 - 4*e*(b**2)*(c**3) + (b*c*d)**2
+        - 27*(b**4)*(e**2) + 18*c*d*e*(b**3) - 4*((b*d)**3) - 4*e*(b**2)*(c**3) + (b*c*d)**2
         
-        print("Descriminant = ",des)
+        
+        P = 8*a*c - 3*(b**2)
+        R = (b**3) + 8*d*(a**2) - 4*a*b*c
+        Del0 = (c**2) - 3*b*d + 12*a*e
+        D = 64*e*(a**3) - 16*((a*c)**2) + 16*a*(b**2)*c - 16*b*d*(a**2) - 3*(b**4)
+        print("Discriminant = ",des," P = ",P," R =",R," Del0 = ",Del0," D = ",D)
         return des
     
     def GetODEPrefectors(self,roots):
+        """
+            Function to get eight prefactors ((S_i, C_i) for all i in [1,2,3,4]) of the steady state solution, equation: 14 and 15 in the mansucript
+            Prefactors are calculated as solution of Ax = B, A is and 8X8 matrix and B is 1X8 matrix
+            =========================================================
+            returns the discriminant
+        """
         r1,r2,r3,r4 = roots
         A = np.array([[self.D_s*r1**2 - self.Lamda_ps, 0, 0, 0, self.D_c*r1**2 - self.V_p*r1 - self.Lamda_pc, 0, 0, 0],
              [0,self.D_s*r2**2 - self.Lamda_ps, 0, 0, 0, self.D_c*r2**2 - self.V_p*r2 - self.Lamda_pc, 0, 0, ],
@@ -208,7 +264,14 @@ class DendriteWithStochasticSpinesConstantV():
         return prefactors
     
     def SolveAnalytical(self):
-        desc = self.Descriminant()
+        """
+            Analytical solution of the steady state solution of the equations defined by the class, see equations(14 and 15)
+            roots = roots of equation 16
+            pfs = prfactors of equations 14 and 15
+             =========================================================
+             returns the steady state distribution of Ps and Pc
+        """
+        
         roots,vecs = self.GetODERoots()
         pfs = self.GetODEPrefectors(roots)
         ps_dist = np.zeros((np.shape(self.x_grid)))
@@ -220,6 +283,11 @@ class DendriteWithStochasticSpinesConstantV():
         return ps_dist,pc_dist
     
     def IntegralBC(self,ps_dist,pc_dist):
+        """
+            Function to check if Integral boundary condition defined in equations 38 and 39 in the manuscript are satisfied or not
+             =========================================================
+             returns ratio for Ps and Pc calculated in the steady state solution and using equations 38 and 39 in the manuscript
+        """
         tot_ps_num = np.sum(ps_dist)*self.dx
         tot_pc_num = np.sum(pc_dist)*self.dx
         tot_ps_ana = (self.beta*self.Jcin)/(self.Lamda_pc*self.alpha)
@@ -232,15 +300,40 @@ def SaveFigures(filename,ext_list = [".png",".svg",".pdf"]):
         
 
 def RunSim5(delta_x,v_p,D_c,D_s):
+    
+    """
+        Function to run the steady state simulation and plot result
+        takes dx, v_p, D_c and D_s as input, used for parameter fitting
+         =========================================================
+         returns the steady state distribution of Ps, Pc and P_spine
+    """
+    """
+        parameter values
+        
+    """
     Jcin= 0.021
-    alpha= 1.5e-3
-    beta = alpha*2
-    eta_s0= 1e-5
-    gamma= 1/(15*60)
-    SP_model1 = DendriteWithStochasticSpinesConstantV(D_s,D_c,v_p,float('inf'),4.5,alpha,beta,0,Jcin,60,eta_s0,gamma,delta_x);
-    sim_id = "002";
-    ps_dist,pc_dist = SP_model1.solveNumerical()
+    Jsin = 0. # assuming all new proteins are released in cytoplasm
+    alpha= 0.02 
+    beta = 0.03032592760570829
+    eta= 1/43
+    omega = 60
+    gamma= 1/(43) 
+    hl_c = 1.95
+    hl_s = np.inf
+    
+    """
+        creating the class object with parameter values
+    """ 
+    SP_model1 = DendriteWithStochasticSpinesConstantV(D_s,D_c,v_p,hl_s,hl_c,alpha,beta,Jsin,Jcin,omega,eta,gamma,delta_x);
+   
+    """
+        calculating the steady state distribution of Ps and Pc
+    """ 
+    ps_dist,pc_dist = SP_model1.SolveAnalytical()
     # x=np.arange(0,L,delta_x)
+    """
+        saving the parameters in a json dictionary for running on server and cross script calling
+    """ 
     SP_model1.x_grid = SP_model1.x_grid.tolist()
     # jsonstr1 = json.dumps(SP_model1.__dict__)
     param_dict = {}
@@ -261,12 +354,23 @@ def RunSim5(delta_x,v_p,D_c,D_s):
     with open ("./ModelParams.json","w") as fp:
         json.dump(param_dict,fp)
     fp.close()
+    
+    
+    """
+        calculating the steady state spine distriubtion see equation 28 in the manuscript
+    """
     ps_spine = SP_model1.omega*(1/(1+ (SP_model1.gamma/(SP_model1.eta*ps_dist))))
+    
+    """
+        generating figure for the steady state distribution and saving it
+    """
     fig,ax = plt.subplots(figsize=(10, 8))
     fsize=16
     ax.plot(SP_model1.x_grid,ps_dist,label=r"$p_s$",color = color_surf,linewidth=3.0)
     ax.plot(SP_model1.x_grid,pc_dist,label=r"$P_c$",color = color_cyto,linewidth=3.0)
     ax.plot(SP_model1.x_grid,ps_spine,label=r"$P_{spine}$",color = color_spine,linewidth=3.0)
+    ax.set_xlabel(r"dendritic distance in ($\mu$m)")
+    ax.set_ylabel("Protein count")
     fig.tight_layout()
     plt.legend(prop={'size': fsize})
     SaveFigures("./ModelDist")
@@ -274,7 +378,6 @@ def RunSim5(delta_x,v_p,D_c,D_s):
     # breakpoint()
     return ps_dist,pc_dist,ps_spine
 
-RunSim5(0.24,0,0.2,0.1)
 
 
 def RunModelWithFile(param_file):
@@ -286,3 +389,5 @@ def RunModelWithFile(param_file):
      ps_dist,pc_dist = SP_model1.solveNumerical()
      ps_spine = SP_model1.omega*(1/(1+ (SP_model1.gamma/(SP_model1.eta*ps_dist))))
      return ps_dist, pc_dist, ps_spine, SP_model1
+ 
+RunSim5(0.24,1.1309585561316738e-05,0.10000081562301009 , 0.4230844182281098)

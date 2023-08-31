@@ -180,26 +180,25 @@ def DynamicSimRun(model_params, t_range, t_eval, y_init, method="LSODA", dense_o
     return soln
 
 
-def PlasticityExperiment(beta,gamma,dc,vp, ds, locns, x_sdx, up_or_down_factor,g_factor,dc_factor,vp_factor,ds_factor,step_num,op_dir,dt):
+def PlasticityExperiment(beta,gamma,dc,vp, ds, lo, x_sdx, up_or_down_factor,g_factor,dc_factor,vp_factor,ds_factor,step_num):
     beta_updated = beta.copy()
     gamaa_updated = gamma.copy()
     dc_updated = dc.copy()
     vp_updated = vp.copy()
     ds_updated = ds.copy()
-    # change_profile = np.arange(lo-x_sdx,lo+x_sdx,1)
+    change_profile = np.arange(lo-x_sdx,lo+x_sdx,1)
     print(up_or_down_factor,g_factor,dc_factor,vp_factor)
-    for lo in locns:
-        if not up_or_down_factor == 1:
-            beta_updated[lo - x_sdx:lo + x_sdx] *= (up_or_down_factor)
-        if not g_factor == 1:
-            gamaa_updated[lo] *= g_factor
-        # breakpoint()
-        if not dc_factor == 1:
-            dc_updated[lo] *= (dc_factor)
-        if not vp_factor == 1:
-            vp_updated[lo] *= (vp_factor)
-        if not ds_factor == 1:
-            ds_updated[lo] *= (ds_factor)
+    if not up_or_down_factor == 1:
+        beta_updated[lo - x_sdx:lo + x_sdx] *= (up_or_down_factor)
+    if not g_factor == 1:
+        gamaa_updated[lo - x_sdx:lo + x_sdx] *= g_factor
+    # breakpoint()
+    if not dc_factor == 1:
+        dc_updated[lo] *= (dc_factor)
+    if not vp_factor == 1:
+        vp_updated[lo]  *= (vp_factor)
+    if not ds_factor == 1:
+        ds_updated[lo]  *= (ds_factor)
     vp_updated[lo + x_sdx] *= vp_factor
     plt.plot(x_grid, beta_updated / beta, label=r"$\beta$")
     plt.plot(x_grid, gamaa_updated / gamma, label=r"$\gamma$")
@@ -208,23 +207,15 @@ def PlasticityExperiment(beta,gamma,dc,vp, ds, locns, x_sdx, up_or_down_factor,g
     plt.plot(x_grid, ds_updated / ds, label=r"$D_s$")
     plt.title("at time step {}".format(step_num))
     plt.legend()
-    SaveFigures("{0}/fig_protocol_{1}_step_{2}".format(op_dir, dt,step_num),dpi=300)
     plt.show()
     return beta_updated, gamaa_updated, dc_updated, vp_updated, ds_updated
 
-def SaveFigures(filename,ext_list = [".png",".svg",".pdf"],dpi=300):
-    """
-        function to save figures
-        required arguments:
-            filename
-    """
-    for ext in ext_list:
-        plt.savefig(filename+ext,dpi=dpi)
-# def Bleach(y, lo, x_sdx):
-#     pc_l, ps_l, psp_l = GetProteindata(y)
-#     ps_l[lo - x_span_dx:lo + x_span_dx] = 0
-#     psp_l[lo - x_span_dx:lo + x_span_dx] = 0
-#     return np.vstack((np.vstack((pc_l, ps_l)), psp_l)).T.flatten()
+
+def Bleach(y, lo, x_sdx):
+    pc_l, ps_l, psp_l = GetProteindata(y)
+    ps_l[lo - x_span_dx:lo + x_span_dx] = 0
+    psp_l[lo - x_span_dx:lo + x_span_dx] = 0
+    return np.vstack((np.vstack((pc_l, ps_l)), psp_l)).T.flatten()
 
 
 def patterson2010GluA1Plasticity(beta,gamma,dc,vp,ds, lo, x_sdx):
@@ -263,7 +254,7 @@ def patterson2010GluA1Plasticity(beta,gamma,dc,vp,ds, lo, x_sdx):
     vp_factors.append(vp0)
     ds_factors.append(ds0)
     time_steps.append(t_step0)
-    beta_step0,gamma_step0,dc_step0, vp_step0,ds_step0 = PlasticityExperiment(beta,gamma,dc,vp,ds, lo, x_sdx, f0, g0,dc0,vp0,ds0,0,op_dir,date_time)
+    beta_step0,gamma_step0,dc_step0, vp_step0,ds_step0 = PlasticityExperiment(beta,gamma,dc,vp,ds, lo, x_sdx, f0, g0,dc0,vp0,ds0,0)
 
     model_params = [dc_step0 , ds_step0, vp_step0, Lamda_pc, Lamda_ps, alpha * np.ones(P_c_init.shape), beta_step0, eta* np.ones(P_c_init.shape), omega, gamma_step0,
                     Jcin, Jsin, dx]
@@ -276,21 +267,21 @@ def patterson2010GluA1Plasticity(beta,gamma,dc,vp,ds, lo, x_sdx):
     total_tps = soln0.t
     sim_time += t_step0
     print("Step 0 finished at simulation time  = ", sim_time)
-    # beta_profile = np.ones(soln0.t.shape) * beta_step0[location]
-    # gamma_profile = np.ones(soln0.t.shape) * gamma_step0[location]
-    # dc_profile = np.ones(soln0.t.shape) * dc_step0[location]
-    # vp_profile = np.ones(soln0.t.shape) * vp_step0[location]
-    # ds_profile = np.ones(soln0.t.shape) * ds_step0[location]
+    beta_profile = np.ones(soln0.t.shape) * beta_step0[location]
+    gamma_profile = np.ones(soln0.t.shape) * gamma_step0[location]
+    dc_profile = np.ones(soln0.t.shape) * dc_step0[location]
+    vp_profile = np.ones(soln0.t.shape) * vp_step0[location]
+    ds_profile = np.ones(soln0.t.shape) * ds_step0[location]
     """
     Step 1
     """
-    f1 = 26
-    g1 = 1/100
-    dc1 = 1
-    vp1  = 1
-    ds1 = 1
+    f1 = 6
+    g1 = 1/1.9
+    dc1 = 1/100
+    vp1  = 1/100
+    ds1 = 1/100
     new_y_init = data_mat[:, -1]  # Bleach(data_mat[:, -1],lo,x_sdx)
-    beta_step1,gamma_step1,dc_step1, vp_step1, ds_step1 = PlasticityExperiment(beta,gamma,dc,vp,ds, lo, x_sdx, f1,g1,dc1,vp1,ds1,1,op_dir,date_time)
+    beta_step1,gamma_step1,dc_step1, vp_step1, ds_step1 = PlasticityExperiment(beta,gamma,dc,vp,ds, lo, x_sdx, f1,g1,dc1,vp1,ds1,1)
     t_step1 = 60  # running for 50 secs
     factors.append(f1)
     g_factors.append(g1)
@@ -309,11 +300,11 @@ def patterson2010GluA1Plasticity(beta,gamma,dc,vp,ds, lo, x_sdx):
     data_mat = np.concatenate((data_mat, soln1.y), axis=1)
     print("Step 1 finished at simulation time  = ", sim_time)
     saveoutput(op_dir, date_time, data_mat, total_tps, 1, "./ModelParams.json")
-    # beta_profile = np.concatenate((beta_profile, np.ones(soln1.t.shape) * beta_step1[location]))
-    # gamma_profile = np.concatenate((gamma_profile, np.ones(soln1.t.shape) * gamma_step1[location]))
-    # dc_profile = np.concatenate((dc_profile, np.ones(soln1.t.shape) * dc_step1[location]))
-    # vp_profile = np.concatenate((vp_profile, np.ones(soln1.t.shape) * vp_step1[location]))
-    # ds_profile = np.concatenate((ds_profile, np.ones(soln1.t.shape) * ds_step1[location]))
+    beta_profile = np.concatenate((beta_profile, np.ones(soln1.t.shape) * beta_step1[location]))
+    gamma_profile = np.concatenate((gamma_profile, np.ones(soln1.t.shape) * gamma_step1[location]))
+    dc_profile = np.concatenate((dc_profile, np.ones(soln1.t.shape) * dc_step1[location]))
+    vp_profile = np.concatenate((vp_profile, np.ones(soln1.t.shape) * vp_step1[location]))
+    ds_profile = np.concatenate((ds_profile, np.ones(soln1.t.shape) * ds_step1[location]))
 
     # """
     # Step 2
@@ -347,11 +338,11 @@ def patterson2010GluA1Plasticity(beta,gamma,dc,vp,ds, lo, x_sdx):
     Step last
     """
     finf = 1
-    ginf = 1/100
+    ginf = 1/1.25
     dcinf = 1
     vpinf = 1
     dsinf = 1
-    beta_steplast, gamma_steplast,dc_steplast,vp_steplast,ds_steplast = PlasticityExperiment(beta,gamma,dc,vp,ds, lo, x_sdx, finf,ginf,dcinf,vpinf,dsinf,-1,op_dir,date_time)
+    beta_steplast, gamma_steplast,dc_steplast,vp_steplast,ds_steplast = PlasticityExperiment(beta,gamma,dc,vp,ds, lo, x_sdx, finf,ginf,dcinf,vpinf,dsinf,-1)
     t_steplast = 29*60  # running for 10 secs
     factors.append(finf)
     g_factors.append(ginf)
@@ -379,11 +370,11 @@ def patterson2010GluA1Plasticity(beta,gamma,dc,vp,ds, lo, x_sdx):
     soln_last = DynamicSimRun(model_params2, t_rangelast, t_evallast, new_y_init, max_step=100 * dt, method='RK45')
     print("Last finished at simulation time  = ", sim_time)
     # saveoutput(op_dir, date_time, data_mat, total_tps, n, "./ModelParams.json")
-    # beta_profile = np.concatenate((beta_profile, np.ones(soln_last.t.shape) * beta_steplast[location]))
-    # gamma_profile = np.concatenate((gamma_profile, np.ones(soln_last.t.shape) * gamma_steplast[location]))
-    # dc_profile = np.concatenate((dc_profile, np.ones(soln_last.t.shape) * dc_steplast[location]))
-    # vp_profile = np.concatenate((vp_profile, np.ones(soln_last.t.shape) * vp_steplast[location]))
-    # ds_profile = np.concatenate((ds_profile, np.ones(soln_last.t.shape) * ds_steplast[location]))
+    beta_profile = np.concatenate((beta_profile, np.ones(soln_last.t.shape) * beta_steplast[location]))
+    gamma_profile = np.concatenate((gamma_profile, np.ones(soln_last.t.shape) * gamma_steplast[location]))
+    dc_profile = np.concatenate((dc_profile, np.ones(soln_last.t.shape) * dc_steplast[location]))
+    vp_profile = np.concatenate((vp_profile, np.ones(soln_last.t.shape) * vp_steplast[location]))
+    ds_profile = np.concatenate((ds_profile, np.ones(soln_last.t.shape) * ds_steplast[location]))
 
     """
     Concatinating the results of all steps
@@ -393,19 +384,20 @@ def patterson2010GluA1Plasticity(beta,gamma,dc,vp,ds, lo, x_sdx):
     print("total simulation time = ", sim_time)
     data_mat = np.concatenate((data_mat, soln_last.y), axis=1)
     saveoutput(op_dir, date_time, data_mat, total_tps, 100, "./ModelParams.json")
-    # plt.plot((total_tps-t_step0)/60, beta_profile/beta_profile[0],label=r"$\beta$")
-    #     # plt.plot((total_tps-t_step0)/60, gamma_profile/gamma_profile[0],label=r"$\gamma$")
-    #     # plt.plot((total_tps - t_step0) / 60, dc_profile/dc_profile[0], label=r"$D_c$")
-    #     # plt.plot((total_tps - t_step0) / 60,vp_profile/vp_profile[0],label=r"$V_p$")
-    #     # plt.plot((total_tps - t_step0) / 60, ds_profile/ds_profile[0], label=r"$D_s$")
-    #     # plt.xlabel("Simulation time in mins")
-    #     # plt.ylabel("Fold change")
-    #     # plt.legend()
-    #     #
-    #     # plt.savefig("{0}/fig_protocol_{1}.pdf".format(op_dir, date_time),dpi=300)
-    #     # plt.show()
+    plt.plot((total_tps-t_step0)/60, beta_profile/beta_profile[0],label=r"$\beta$")
+    plt.plot((total_tps-t_step0)/60, gamma_profile/gamma_profile[0],label=r"$\gamma$")
+    plt.plot((total_tps - t_step0) / 60, dc_profile/dc_profile[0], label=r"$D_c$")
+    plt.plot((total_tps - t_step0) / 60,vp_profile/vp_profile[0],label=r"$V_p$")
+    plt.plot((total_tps - t_step0) / 60, ds_profile/ds_profile[0], label=r"$D_s$")
+    plt.xlabel("Simulation time in mins")
+    plt.ylabel("Fold change")
+    plt.legend()
+
+    plt.savefig("{0}/fig_protocol_{1}.pdf".format(op_dir, date_time),dpi=300)
+    plt.show()
     # breakpoint()
-    savesimsettings(3, time_steps, factors, g_factors, dc_factors,vp_factors,ds_factors, lo,x_sdx,"{0}/protocol_{1}.txt".format(op_dir, date_time))
+    savesimsettings(3, time_steps, factors, g_factors, dc_factors,vp_factors,ds_factors, [loc], x_span,
+                    "{0}/protocol_{1}.txt".format(op_dir, date_time))
 
 def savesimsettings(num_steps, time_steps, factors,g_factors,dc_factors,vp_factors,ds_factors, locations, x_span, protocol_file):
     # assert num_steps == len(time_steps) - 1
@@ -457,8 +449,8 @@ dc_arr = D_c_orig*np.ones(P_c_init.shape)
 vp_arr = V_p_orig*np.ones(P_c_init.shape)
 ds_arr = D_s_orig*np.ones(P_c_init.shape)
 # breakpoint()
-loc = [50]
-location = [int(l / dx) for l in loc]
+loc = 50
+location = int(loc / dx)
 x_span = 3
 x_span_dx = int(x_span / dx)
 patterson2010GluA1Plasticity(beta_array,gamma_arr,dc_arr,vp_arr,ds_arr, location, x_span_dx)

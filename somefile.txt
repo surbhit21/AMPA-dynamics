@@ -1,0 +1,9 @@
+#Step = 4
+#Step = 4
+time points = #Step = 4
+time points = 0	30	50	10	10	
+#Step = 4
+time points = 0	30	50	10	10	
+factors = 1	1	26	6	1	
+location = 416	
+parameter chaned = beta
