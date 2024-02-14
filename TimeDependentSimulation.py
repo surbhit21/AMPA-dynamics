@@ -6,7 +6,7 @@ Created on Fri Dec  2 11:34:03 2022
 @author: surbhitwagle
 """
 
-from AMPA_model import RunSim5
+from AMPA_model import RunSimGluA2
 from datetime import datetime
 import os
 import matplotlib.pyplot as plt
@@ -15,7 +15,7 @@ import numpy as np
 
 
 
-simulation parameters
+# simulation parameters
 L = 500.0
 dx = 0.1
 x_grid = np.arange(0,L,dx)
@@ -58,7 +58,7 @@ R = (V_p*dt)/(4*dx)
 
 
 # Initial values of P_s and P_c is set to 0
-P_s_init,P_c_init,P_spine_init = RunSim5(dx,V_p,D_c,D_s)
+P_s_init,P_c_init,P_spine_init = RunSimGluA2(dx,V_p,D_c,D_s)
 # P_s_init = np.zeros(x_grid.shape)
 # P_c_init = np.zeros(x_grid.shape)
 

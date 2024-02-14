@@ -108,7 +108,7 @@ def PlotSingleSimTwoProtein(x, ps, pc, p_spine, lab_ps, lab_pc, lab_p_spine,
 def CreateFolderRecursive(folder):
         Path(folder).mkdir(parents=True, exist_ok=True)
 
-L= 500
+# L= 100
 class DendriteWithStochasticSpinesConstantV():
     """
         Class for the steady state solution of  model equations:
@@ -122,7 +122,7 @@ class DendriteWithStochasticSpinesConstantV():
     """
 
     def __init__(self, D_s, D_c, V_p, half_life_surf, half_life_int, alpha,
-                 beta, Jsin, Jcin, omega, eta,gamma,dx):
+                 beta, Jsin, Jcin, omega, eta,gamma,dx,L= 100):
         self.D_s = D_s   # in uM^2/s
         self.D_c = D_c   # in uM^2/s
         self.V_p = V_p    # in uM/s
@@ -138,7 +138,8 @@ class DendriteWithStochasticSpinesConstantV():
         self.eta = eta;
         self.gamma = gamma;
         self.dx = dx
-        self.x_grid = np.arange(0,L,dx)
+        self.L = L
+        self.x_grid = np.arange(0,self.L,dx)
         
     
     def fun(self, x, y):
@@ -198,9 +199,9 @@ class DendriteWithStochasticSpinesConstantV():
              [0,self.D_s*r2**2 - self.Lamda_ps, 0, 0, 0, self.D_c*r2**2 - self.V_p*r2 - self.Lamda_pc, 0, 0, ],
              [0, 0, self.D_s*r3**2 - self.Lamda_ps, 0, 0, 0, self.D_c*r3**2 - self.V_p*r3 - self.Lamda_pc, 0 ],
              [0, 0, 0, self.D_s*r4**2 - self.Lamda_ps, 0, 0, 0, self.D_c*r4**2 - self.V_p*r4 - self.Lamda_pc],
-             [r1*np.exp(r1*L), r2*np.exp(r2*L), r3*np.exp(r3*L), r4*np.exp(r4*L), 0, 0, 0, 0],
+             [r1*np.exp(r1*self.L), r2*np.exp(r2*self.L), r3*np.exp(r3*self.L), r4*np.exp(r4*self.L), 0, 0, 0, 0],
              [r1, r2, r3, r4, 0, 0, 0, 0],
-             [0, 0, 0, 0,(self.D_c*r1 - self.V_p)*np.exp(r1*L), (self.D_c*r2 - self.V_p)*np.exp(r2*L), (self.D_c*r3 - self.V_p)*np.exp(r3*L), (self.D_c*r4 - self.V_p)*np.exp(r4*L) ],
+             [0, 0, 0, 0,(self.D_c*r1 - self.V_p)*np.exp(r1*self.L), (self.D_c*r2 - self.V_p)*np.exp(r2*self.L), (self.D_c*r3 - self.V_p)*np.exp(r3*self.L), (self.D_c*r4 - self.V_p)*np.exp(r4*self.L) ],
              [0, 0, 0, 0,self.D_c*r1 - self.V_p, self.D_c*r2 - self.V_p, self.D_c*r3 - self.V_p, self.D_c*r4 - self.V_p ]]);
         B = np.array([0, 0, 0, 0, 0, -self.Jsin, 0, -self.Jcin]);
         # breakpoint()
@@ -231,34 +232,7 @@ def SaveFigures(filename,ext_list = [".png",".svg",".pdf"]):
         plt.savefig(filename+ext,dpi=300)
         
 
-## used for model fitting
-def RunSim5(delta_x,v_p,D_c,D_s,rat):
-    Jcin= 0.021
-    alpha= 1.5e-4
-    beta = alpha*rat
-    eta= 0.00020
-    gamma= 1/(43)
-    SP_model1 = DendriteWithStochasticSpinesConstantV(D_s,D_c,v_p,float('inf'),4.5,alpha,beta,0,Jcin,60,eta,gamma,delta_x);
-    ps_dist,pc_dist = SP_model1.solveNumerical()
-    ps_spine = SP_model1.omega*(1/(1+ (SP_model1.gamma/(SP_model1.eta*ps_dist))))
-    return SP_model1.x_grid,ps_dist,pc_dist,ps_spine
-
-# RunSim5(0.24,0,0.2,0.1)
-
-
-## used for temporal integration
-def RunSim1(delta_x,v_p,D_c,D_s):
-    breakpoint()
-    Jcin = 0.02
-    alpha = 1.5e-4
-    beta = alpha * 2
-    eta = 0.00020
-    gamma = 1 / (43)
-    SP_model1 = DendriteWithStochasticSpinesConstantV(D_s, D_c, v_p, float('inf'), 4.35, alpha, beta, 0, Jcin, 60,
-                                                      eta, gamma, delta_x);
-    sim_id = "002";
-    ps_dist, pc_dist = SP_model1.solveNumerical()
-    # x=np.arange(0,L,delta_x)
+def savemodelparams(SP_model1,param_file):
     SP_model1.x_grid = SP_model1.x_grid.tolist()
     # jsonstr1 = json.dumps(SP_model1.__dict__)
     param_dict = {}
@@ -275,10 +249,75 @@ def RunSim1(delta_x,v_p,D_c,D_s):
     param_dict["dx"] = SP_model1.dx
     param_dict["Jsin"] = SP_model1.Jsin
     param_dict["Jcin"] = SP_model1.Jcin
+    param_dict["L"] = SP_model1.L
     # breakpoint()
-    with open("./ModelParamsTemporal.json", "w") as fp:
+    with open(param_file, "w") as fp:
         json.dump(param_dict, fp)
     fp.close()
+
+## used for model fitting
+def RunSimGluA2(delta_x,v_p,D_c,D_s,rat):
+    Jcin= 0.021
+    alpha= 1.5e-4
+    beta = alpha*rat
+    eta= 0.00070
+    gamma= 1/(43)
+    SP_model1 = DendriteWithStochasticSpinesConstantV(D_s,
+                                                      D_c,
+                                                      v_p,
+                                                      float('inf'),
+                                                      3.12,
+                                                      alpha,
+                                                      beta,
+                                                      0,
+                                                      Jcin,
+                                                      60,
+                                                      eta,
+                                                      gamma,
+                                                      delta_x,
+                                                      500);
+    ps_dist,pc_dist = SP_model1.solveNumerical()
+    ps_spine = SP_model1.omega*(1/(1+ (SP_model1.gamma/(SP_model1.eta*ps_dist))))
+    savemodelparams(SP_model1, "./ModelParamsTemporalGluA2.json")
+    ps_spine = SP_model1.omega * (1 / (1 + (SP_model1.gamma / (SP_model1.eta * ps_dist))))
+    fig, ax = plt.subplots(figsize=(10, 8))
+    fsize = 16
+    ax.plot(SP_model1.x_grid, ps_dist, label=r"$p_s$", color=color_surf, linewidth=3.0)
+    ax.plot(SP_model1.x_grid, pc_dist, label=r"$P_c$", color=color_cyto, linewidth=3.0)
+    ax.plot(SP_model1.x_grid, ps_spine, label=r"$P_{spine}$", color=color_spine, linewidth=3.0)
+    fig.tight_layout()
+    plt.legend(prop={'size': fsize})
+    SaveFigures("./ModelDistGluA2")
+    plt.show()
+    return SP_model1.x_grid,ps_dist,pc_dist,ps_spine
+
+
+
+## used for temporal integration
+def RunSimGluA1(delta_x,v_p,D_c,D_s):
+    Jcin = 0.02
+    alpha = 1.5e-4
+    beta = alpha * 1.5
+    eta = 0.00050
+    gamma = 1 / (43)
+    SP_model1 = DendriteWithStochasticSpinesConstantV(D_s,
+                                                      D_c,
+                                                      v_p,
+                                                      float('inf'),
+                                                      4.35,
+                                                      alpha,
+                                                      beta,
+                                                      0,
+                                                      Jcin,
+                                                      60,
+                                                      eta,
+                                                      gamma,
+                                                      delta_x,
+                                                      500);
+    sim_id = "002";
+    ps_dist, pc_dist = SP_model1.solveNumerical()
+    # x=np.arange(0,L,delta_x)
+    savemodelparams(SP_model1,"./ModelParamsTemporalGluA1.json")
     ps_spine = SP_model1.omega * (1 / (1 + (SP_model1.gamma / (SP_model1.eta * ps_dist))))
     fig,ax = plt.subplots(figsize=(10, 8))
     fsize=16
@@ -287,10 +326,10 @@ def RunSim1(delta_x,v_p,D_c,D_s):
     ax.plot(SP_model1.x_grid,ps_spine,label=r"$P_{spine}$",color = color_spine,linewidth=3.0)
     fig.tight_layout()
     plt.legend(prop={'size': fsize})
-    SaveFigures("./ModelDist")
+    SaveFigures("./ModelDistGluA1")
     plt.show()
 
-# RunSim1(0.24, 1e-5, 0.1, 0.1)
+# RunSimGluA1(0.24, 1e-5, 0.1, 0.1)
 def RunModelWithFile(param_file):
      with open (param_file,"r") as fp:
         params = json.load(fp)
@@ -300,3 +339,9 @@ def RunModelWithFile(param_file):
      ps_dist,pc_dist = SP_model1.solveNumerical()
      ps_spine = SP_model1.omega*(1/(1+ (SP_model1.gamma/(SP_model1.eta*ps_dist))))
      return ps_dist, pc_dist, ps_spine, SP_model1
+
+subunit = "GluA2"
+if subunit == "GluA2":
+    RunSimGluA2(0.24,1e-5,0.7,0.7,0.4)
+else:
+    RunSimGluA1(1, 1e-5, 0.1, 0.1)

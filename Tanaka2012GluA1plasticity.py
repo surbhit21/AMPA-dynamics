@@ -44,20 +44,21 @@ def Tanaka2012GluA1Plasticity(ds,dc,vp,alpha,beta,eta,gamma, lo, x_sdx):
     print("date and time:", date_time)
     sim_time = 0
     time_steps = [0]
-    factors = [1]
-    g_factors = [1]
+    b_factors = [1]
+    e_factors = [1]
     """
     Step 0
     """
     f0 = 1  # increase by a factor of 1
-    g0 = 1
+    e0 = 1
     t_step0 = 30  # running for t_step0 secs
-    factors.append(f0)
-    g_factors.append(g0)
+    b_factors.append(f0)
+    # g_factors.append(g0)
+    e_factors.append(e0)
     time_steps.append(t_step0)
-    beta_step0,gamma_step0 = PlasticityExperiment(beta,gamma, lo, x_sdx, f0, g0)
+    beta_step0,eta_step0 = PlasticityExperiment(beta,eta, lo, x_sdx, f0, e0)
 
-    model_params = [dc, ds, vp, Lamda_pc, Lamda_ps, alpha, beta_step0, eta, omega, gamma_step0,
+    model_params = [dc, ds, vp, Lamda_pc, Lamda_ps, alpha, beta_step0, eta_step0, omega, gamma,
                     Jcin, Jsin, dx]
     # plt.plot(x_grid, beta_step0 / beta_step0[0])
     # plt.show()
@@ -69,19 +70,19 @@ def Tanaka2012GluA1Plasticity(ds,dc,vp,alpha,beta,eta,gamma, lo, x_sdx):
     sim_time += t_step0
     print("Step 0 finished at simulation time  = ", sim_time)
     beta_profile = np.ones(soln0.t.shape) * beta_step0[location]
-    gamma_profile = np.ones(soln0.t.shape) * gamma_step0[location]
+    eta_profile = np.ones(soln0.t.shape) * eta_step0[location]
     """
     Step 1
     """
     f1 = 10
-    g1 = 1/1.3
+    e1 = 1.3
     new_y_init = data_mat[:, -1]  # Bleach(data_mat[:, -1],lo,x_sdx)
-    beta_step1,gamma_step1 = PlasticityExperiment(beta,gamma, lo, x_sdx, f1,g1)
+    beta_step1,eta_step1 = PlasticityExperiment(beta,eta, lo, x_sdx, f1,e1)
     t_step1 = 10*60  # running for 50 secs
-    factors.append(f1)
-    g_factors.append(g1)
+    b_factors.append(f1)
+    e_factors.append(e1)
     time_steps.append(t_step1)
-    model_params = [dc, ds, vp, Lamda_pc, Lamda_ps, alpha , beta_step1, eta, omega, gamma_step1,
+    model_params = [dc, ds, vp, Lamda_pc, Lamda_ps, alpha , beta_step1, eta_step1, omega, gamma,
                     Jcin, Jsin, dx]
     # plt.plot(x_grid, beta_step1 / beta_step1[0])
     # plt.show()
@@ -94,25 +95,25 @@ def Tanaka2012GluA1Plasticity(ds,dc,vp,alpha,beta,eta,gamma, lo, x_sdx):
     print("Step 1 finished at simulation time  = ", sim_time)
     # saveoutput(op_dir, date_time, data_mat, total_tps, 1, "./ModelParams.json")
     beta_profile = np.concatenate((beta_profile, np.ones(soln1.t.shape) * beta_step1[location]))
-    gamma_profile = np.concatenate((gamma_profile, np.ones(soln1.t.shape) * gamma_step1[location]))
+    eta_profile = np.concatenate((eta_profile, np.ones(soln1.t.shape) * eta_step1[location]))
 
     """
     Step last
     """
     finf = 1
-    ginf = 1/1.3
-    beta_steplast, gamma_steplast = PlasticityExperiment(beta,gamma, lo, x_sdx, finf,ginf)
-    t_steplast = 20*60  # running for 10 secs
-    factors.append(finf)
-    g_factors.append(ginf)
+    einf = 1.3
+    beta_steplast, eta_steplast = PlasticityExperiment(beta,eta, lo, x_sdx, finf,einf)
+    t_steplast = 50*60  # running for 10 secs
+    b_factors.append(finf)
+    e_factors.append(einf)
     time_steps.append(t_steplast)
     # breakpoint()
     """
     chaning y_init to the last time_step value of step 2
     """
     new_y_init = data_mat[:, -1]
-    model_params2 = [dc, ds, vp, Lamda_pc, Lamda_ps, alpha, beta_steplast, eta, omega,
-                     gamma_steplast,
+    model_params2 = [dc, ds, vp, Lamda_pc, Lamda_ps, alpha, beta_steplast, eta_steplast, omega,
+                     gamma,
                      Jcin, Jsin, dx]
     # plt.plot(x_grid, beta_steplast / beta_steplast[0])
     # plt.show()
@@ -122,7 +123,7 @@ def Tanaka2012GluA1Plasticity(ds,dc,vp,alpha,beta,eta,gamma, lo, x_sdx):
     print("Last finished at simulation time  = ", sim_time)
     # saveoutput(op_dir, date_time, data_mat, total_tps, n, "./ModelParams.json")
     beta_profile = np.concatenate((beta_profile, np.ones(soln_last.t.shape) * beta_steplast[location]))
-    gamma_profile = np.concatenate((gamma_profile, np.ones(soln_last.t.shape) * gamma_steplast[location]))
+    eta_profile = np.concatenate((eta_profile, np.ones(soln_last.t.shape) * eta_steplast[location]))
 
     """
     Concatinating the results of all steps
@@ -131,23 +132,26 @@ def Tanaka2012GluA1Plasticity(ds,dc,vp,alpha,beta,eta,gamma, lo, x_sdx):
     sim_time += t_steplast
     print("total simulation time = ", sim_time)
     data_mat = np.concatenate((data_mat, soln_last.y), axis=1)
-    saveoutput(op_dir, date_time, data_mat, total_tps, 100, "./ModelParamsTemporal.json")
-    breakpoint()
+    saveoutput(op_dir, date_time, data_mat, total_tps, 100, baseline_param_file)
+    # breakpoint()
     fig, ax = plt.subplots(figsize=(8, 6), nrows=1, ncols=1)
     ax.plot((total_tps-t_step0)/60, beta_profile/beta_profile[0],label=r"$\beta$")
-    ax.plot((total_tps-t_step0)/60, gamma_profile/gamma_profile[0],label=r"$\gamma$")
+    ax.plot((total_tps-t_step0)/60, eta_profile/eta_profile[0],label=r"$\eta$")
     ax.spines[["top","right"]].set_visible(False)
-    # plt.xlabel("Simulation time in mins")
-    # plt.ylabel("Fold change")
-    plt.legend(frameon=False)
+    ax.tick_params(axis='both', which='major', labelsize=18)
+    plt.xlabel("Simulation time in mins")
+    plt.ylabel("Fold change")
+    plt.legend(frameon=False,fontsize=18)
     # plt.legend()
     # breakpoint()
     plt.tight_layout()
-    plt.savefig("{0}/fig_protocol_{1}.pdf".format(op_dir, date_time),dpi=300)
-    plt.savefig("{0}/fig_protocol_{1}.png".format(op_dir, date_time), dpi=300)
-    plt.savefig("{0}/fig_protocol_{1}.eps".format(op_dir, date_time), dpi=300)
-    savesimsettings(3, time_steps, [loc], x_span, "{0}/protocol_{1}.json".format(op_dir, date_time),beta_factors=factors,gamma_factors=g_factors)
-    plt.show()
+    SaveFigures("{0}/fig_protocol_{1}".format(op_dir, date_time))
+    savesimsettings(1, time_steps, lo, "{0}/protocol_{1}.json".format(op_dir, date_time), beta_factors=b_factors,
+                    eta_factors=e_factors)
+
+
+    plt.close()
+    print("Simulation complete and data saved!")
 
 
 beta_array = beta_orig * np.ones(P_c_init.shape)

@@ -1,4 +1,5 @@
-from AMPA_model import RunSim5, RunModelWithFile,RunSim1
+import AMPA_model
+from AMPA_model import RunSimGluA2, RunModelWithFile,RunSimGluA1
 
 import json
 import matplotlib.pyplot as plt
@@ -8,8 +9,10 @@ from scipy.integrate import solve_ivp
 import shutil
 
 
+subunit= AMPA_model.subunit
+baseline_param_file = "./ModelParamsTemporal{}.json".format(subunit)
 dt = 0.02
-P_s_init, P_c_init, P_spine_init, SP_model1 = RunModelWithFile("./ModelParamsTemporal.json")
+P_s_init, P_c_init, P_spine_init, SP_model1 = RunModelWithFile(baseline_param_file)
 y0 = np.vstack((np.vstack((P_c_init, P_s_init)), P_spine_init))
 L = 500.0
 dx = SP_model1.dx
@@ -28,7 +31,8 @@ omega = SP_model1.omega;  # same as eta_s_max in steady state model file
 eta_orig = SP_model1.eta;  # same as eta_s_zero in steady state model file
 gamma_orig = SP_model1.gamma
 y_init_orig = y0.T.flatten()  # np.zeros(y0.T.flatten().shape) #np.zeros(y0.T.flatten().shape) #
-
+print("baseline parameters ",dir(SP_model1))
+# breakpoint()
 def Endocytosis(ps, alpha):
     return alpha * ps;
 
@@ -79,9 +83,7 @@ def AMPATimeDynamics(t, y, Dc, Ds, Vp, lamdac, lamdas, alpha, beta, eta, omega, 
     dpcdt = dydt[::3]
     dpsdt = dydt[1::3]
     dpspinedt = dydt[2::3]
-    # print(y)
-    # print(dpcdt.shape,dpsdt.shape,dpspinedt.shape,pc.shape,ps.shape,pspine.shape)
-    # breakpoint()
+
     dpcdt[0] = Endocytosis(ps[0], alpha[0]) - Exocytosis(pc[0], beta[0]) - Degrdation(pc[0], lamdac) \
                + 2. * Jcin * (1 / dx - Vp[0] / Dc[0]) + Dc[0] * (- 2. * (1 + dx * Vp[0] / Dc[0]) * pc[0] + 2. * pc[1]) / dx ** 2 - (
                            Vp[0] / dx) * ((1 + 2 * dx * Vp[0] / Dc[0]) * pc[0] - pc[1])
@@ -101,18 +103,42 @@ def AMPATimeDynamics(t, y, Dc, Ds, Vp, lamdac, lamdas, alpha, beta, eta, omega, 
     dpspinedt[0] = SpineExchange(ps[0], pspine[0], eta[0], omega, gamma[0])
     dpspinedt[1:-1] = SpineExchange(ps[1:-1], pspine[1:-1], eta[1:-1], omega, gamma[1:-1])  # Spine_rk(ps,pspine,eta,omega,gamma)
     dpspinedt[-1] = SpineExchange(ps[-1], pspine[-1], eta[-1], omega, gamma[-1])
-    dydt
-    # dpsdt -= dpspinedt
-    # print(dpcdt,dpsdt,dpspinedt,"*"*20,"\n")
+
     return dydt
 
+# def Inerpparam(t,param):
+
+def AdaptiveAMPATimeDynamics(t, y, Dc, Ds, Vp, lamdac, lamdas, alpha, beta_0,beta_mat, eta, omega, gamma, Jcin, Jsin, dx):
+    # Getting the current value of exocytosis rate
+    beta = beta_0*beta_mat[:,int(t/dt)]/beta_mat[:,0]
+
+    # calculating the time derivative
+    dydt = AMPATimeDynamics(t, y, Dc, Ds, Vp, lamdac, lamdas, alpha, beta, eta, omega, gamma, Jcin, Jsin, dx)
+    return dydt
 def DynamicSimRun(model_params, t_range, t_eval, y_init, method="LSODA", dense_op=True, vectorize=True, lband=2,
                   uband=2, rtol=1e-5, atol=1e-11, max_step=100):
-    soln = solve_ivp(AMPATimeDynamics, t_range, y_init, args=(model_params), \
+    soln = solve_ivp(AMPATimeDynamics,
+                     t_range,
+                     y_init,
+                     args=(model_params),
+                     method=method,
+                     dense_output=dense_op,
+                     vectorize=vectorize,
+                     lband=lband,
+                     uband=uband,
+                     rtol=rtol,
+                     atol=atol,
+                     max_step=max_step,
+                     t_eval=t_eval)
+    return soln
+
+def AdaptiveDynamicsSimRun(model_params, t_range, t_eval, y_init, method="LSODA", dense_op=True, vectorize=True, lband=2,
+                  uband=2, rtol=1e-5, atol=1e-11, max_step=100):
+    # Passes the adptive version of temporal integrator
+    soln = solve_ivp(AdaptiveAMPATimeDynamics, t_range, y_init, args=(model_params), \
                      method=method, dense_output=dense_op, vectorize=vectorize, lband=lband, uband=uband, rtol=rtol,
                      atol=atol, max_step=max_step, t_eval=t_eval)
     return soln
-
 def SaveFigures(filename,ext_list = [".png",".svg",".pdf"],dpi=300):
     """
         function to save figures
@@ -121,11 +147,7 @@ def SaveFigures(filename,ext_list = [".png",".svg",".pdf"],dpi=300):
     """
     for ext in ext_list:
         plt.savefig(filename+ext,dpi=dpi)
-# def Bleach(y, lo, x_sdx):
-#     pc_l, ps_l, psp_l = GetProteindata(y)
-#     ps_l[lo - x_span_dx:lo + x_span_dx] = 0
-#     psp_l[lo - x_span_dx:lo + x_span_dx] = 0
-#     return np.vstack((np.vstack((pc_l, ps_l)), psp_l)).T.flatten()
+
 
 def saveoutput(op_dir, date_time, soln, tps, percent, orig_params_file):
     p_c, p_s, p_sp = GetProteindata(soln)

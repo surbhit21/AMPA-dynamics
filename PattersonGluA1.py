@@ -7,8 +7,8 @@ Created on Tue Jan 17 12:01:02 2023
 """
 import matplotlib.pyplot as plt
 import numpy as np
-from AMPA_model import RunSim1
-RunSim1(0.24,1e-5,0.1,0.1)
+from AMPA_model import RunSimGluA1
+# RunSimGluA1(0.24,1e-5,0.1,0.1)
 from TemporalIntegration import *
 from datetime import datetime
 
@@ -22,6 +22,7 @@ pspine = y_init_orig[2::3]
 x_grid = np.arange(0, L, dx)
 y_init = y_init_orig
 
+breakpoint()
 
 
 
@@ -122,6 +123,7 @@ def Singledxchange(pa,locns,factor,uod):
 def PlasticityExperimentGauss(x_grid,params,param_names, locns, sigmas, factors,up_or_down,step_num,op_dir,dt):
     new_pa = params.copy()
     fig,ax = plt.subplots(figsize=(8, 6), nrows=1, ncols=1)
+    plt.yscale("log")
     for pdx,p in enumerate(params):
         if sigmas[pdx] == dx:
             # print("modifying ",param_names[pdx],((factors[pdx])**up_or_down[pdx]))
@@ -133,10 +135,14 @@ def PlasticityExperimentGauss(x_grid,params,param_names, locns, sigmas, factors,
             new_pa[pdx] = ParamChangeGauss(x_grid,params[pdx],locns,sigmas[pdx],factors[pdx],up_or_down[pdx])
         if not factors[pdx] == 1:
             ax.plot(x_grid, new_pa[pdx] / params[pdx], label=param_names[pdx])
+
     ax.spines[["top", "right"]].set_visible(False)
+    ax.set_xlabel(r"Distance from soma ($\mu$m)")
+    ax.set_ylabel(r"$Log_{10}$[Fold change]")
+    ax.tick_params(axis='both', which='major', labelsize=18)
     # plt.xlabel("Simulation time in mins")
     # plt.ylabel("Fold change")
-    plt.legend(frameon=False)
+    plt.legend(frameon=False, fontsize=18)
     SaveFigures("{0}/fig_protocol_{1}_step_{2}".format(op_dir, dt, step_num), dpi=300)
     plt.show()
     return new_pa
@@ -148,11 +154,7 @@ def patterson2010GluA1Plasticity(ds,dc,vp,alpha,beta,eta,gamma, lo):
     step last, we change back the parameters to basal level and run simulation for 30 mins
     we integrate for a total of 30 mins to see the GluA1 dynamics
     """
-    now = datetime.now()
-    date_time = now.strftime("%m_%d_%Y_%H_%M_%S")
-    op_dir = os.getcwd() + "/Time-dependent/" + date_time
-    os.makedirs(op_dir, exist_ok=True)
-    print("date and time:", date_time)
+
     sim_time = 0
     time_steps = []
 
@@ -184,7 +186,11 @@ def patterson2010GluA1Plasticity(ds,dc,vp,alpha,beta,eta,gamma, lo):
     ds_factors.append(ds0)
     time_steps.append(t_step0)
     # beta_step0,alpha_Step0,gamma_step0,dc_step0, vp_step0,ds_step0 = PlasticityExperiment(beta,alpha,gamma,dc,vp,ds, lo, x_sdx, f0,a0, g0,dc0,vp0,ds0,0,op_dir,date_time)
-
+    now = datetime.now()
+    date_time = now.strftime("%m_%d_%Y_%H_%M_%S")
+    op_dir = os.getcwd() + "/Time-dependent/" + date_time
+    os.makedirs(op_dir, exist_ok=True)
+    print("date and time:", date_time)
     beta_step0, alpha_Step0, gamma_step0, dc_step0, vp_step0, ds_step0 = PlasticityExperimentGauss(x_grid, [beta_array, alpha_arr, gamma_arr, dc_arr, vp_arr, ds_arr],
                               [r"$\beta$", r"$\alpha$", r"$\gamma$", r"$D_c$", r"$V_p$", r"$D_s$"], location,
                               l_scales0, [f0, a0, g0, dc0, vp0, ds0], [1, 1, 1, 1, 1, 1], 0, op_dir,date_time)
@@ -200,14 +206,14 @@ def patterson2010GluA1Plasticity(ds,dc,vp,alpha,beta,eta,gamma, lo):
     """
     Step 1
     """
-    f1 = 10
-    a1 = 3
-    g1 = 1.3
+    f1 = 2600
+    a1 = 1
+    g1 = 3
     dc1 = 1
     vp1  = 1
     ds1 = 1
     new_y_init = data_mat[:, -1]  # Bleach(data_mat[:, -1],lo,x_sdx)
-    l_scales1 = [2,4,dx,dx,dx,dx]
+    l_scales1 = [6,dx,dx,dx,dx,dx]
     # l_scales =
     # beta_step1,alpha_step1,gamma_step1,dc_step1, vp_step1, ds_step1 = PlasticityExperiment(beta,alpha,gamma,dc,vp,ds, lo, x_sdx, f1,a1,g1,dc1,vp1,ds1,1,op_dir,date_time)
     beta_step1,alpha_step1,gamma_step1,dc_step1, vp_step1, ds_step1 = PlasticityExperimentGauss(x_grid, [beta_array, alpha_arr, gamma_arr, dc_arr, vp_arr, ds_arr],
@@ -215,7 +221,7 @@ def patterson2010GluA1Plasticity(ds,dc,vp,alpha,beta,eta,gamma, lo):
                               l_scales1, [f1, a1, g1, dc1, vp1, ds1], [1, 1, -1, 1, 1, 1], 1, op_dir, date_time)
     plt.plot(x_grid,beta_step1/beta_step0)
     plt.show()
-    t_step1 = 1*60  # running for 50 secs
+    t_step1 = 1*60  # running for 60 secs
     b_factors.append(f1)
     a_factors.append(a1)
     g_factors.append(g1)
@@ -233,13 +239,13 @@ def patterson2010GluA1Plasticity(ds,dc,vp,alpha,beta,eta,gamma, lo):
     sim_time += t_step1
     data_mat = np.concatenate((data_mat, soln1.y), axis=1)
     print("Step 1 finished at simulation time  = ", sim_time)
-    saveoutput(op_dir, date_time, data_mat, total_tps, 1, "./ModelParamsTemporal.json")
+    saveoutput(op_dir, date_time, data_mat, total_tps, 1, baseline_param_file)
     """
     Step last
     """
     finf = 1
     ainf = 1
-    ginf = 1.3
+    ginf = 2
     dcinf = 1
     vpinf = 1
     dsinf = 1
@@ -277,7 +283,7 @@ def patterson2010GluA1Plasticity(ds,dc,vp,alpha,beta,eta,gamma, lo):
     sim_time += t_steplast
     print("total simulation time = ", sim_time)
     data_mat = np.concatenate((data_mat, soln_last.y), axis=1)
-    saveoutput(op_dir, date_time, data_mat, total_tps, 100, "./ModelParamsTemporal.json")
+    saveoutput(op_dir, date_time, data_mat, total_tps, 100, baseline_param_file)
     savesimsettings(3, time_steps, lo,"{0}/protocol_{1}.json".format(op_dir, date_time),beta_factors=b_factors,
                     gamma_factors=g_factors, dc_factors=dc_factors,vp_factors=vp_factors,ds_factors=ds_factors,alpha_factors=a_factors)
 
@@ -291,7 +297,7 @@ alpha_arr = alpha_orig*np.ones(P_c_init.shape)
 eta_arr = eta_orig*np.ones(P_c_init.shape)
 # breakpoint()
 loc = [50]
-location = [int(l ) for l in loc]
+location = [int(l) for l in loc]
 # x_span = 3
 # x_span_dx = int(x_span )
 patterson2010GluA1Plasticity(ds_arr,dc_arr,vp_arr,alpha_arr,beta_array,eta_arr,gamma_arr, location)

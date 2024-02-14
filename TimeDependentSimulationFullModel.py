@@ -6,7 +6,7 @@ Created on Fri Dec  2 11:34:03 2022
 @author: surbhitwagle
 """
 
-from AMPA_model import RunSim5, RunModelWithFile
+from AMPA_model import RunSimGluA2, RunModelWithFile
 from datetime import datetime
 import os
 import matplotlib.pyplot as plt

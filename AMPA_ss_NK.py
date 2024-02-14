@@ -299,7 +299,7 @@ def SaveFigures(filename,ext_list = [".png",".svg",".pdf"]):
         plt.savefig(filename+ext,dpi=300)
         
 
-def RunSim5(delta_x,v_p,D_c,D_s):
+def RunSimGluA2(delta_x,v_p,D_c,D_s):
     
     """
         Function to run the steady state simulation and plot result
@@ -390,4 +390,4 @@ def RunModelWithFile(param_file):
      ps_spine = SP_model1.omega*(1/(1+ (SP_model1.gamma/(SP_model1.eta*ps_dist))))
      return ps_dist, pc_dist, ps_spine, SP_model1
  
-RunSim5(0.24,1.1309585561316738e-05,0.10000081562301009 , 0.4230844182281098)
+RunSimGluA2(0.24,1.1309585561316738e-05,0.10000081562301009 , 0.4230844182281098)

@@ -443,7 +443,7 @@ def exponential(x, a, b):
     return a*np.exp(b*x)
 
 def GetAMPADistribution(x,a,b):
-    return RunSim5(x,scale,a, b)
+    return RunSimGluA2(x,scale,a, b)
 def ExpFit(xdata,ydata):
     param_bounds=([0,0],[np.inf,np.inf])
     popt, pcov = curve_fit(GetAMPADistribution, xdata, ydata,bounds = param_bounds)

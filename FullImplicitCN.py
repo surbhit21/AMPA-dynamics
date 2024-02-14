@@ -7,7 +7,7 @@ Created on Wed Dec 21 15:12:43 2022
 """
 
 
-from AMPA_model import RunSim5, RunModelWithFile
+from AMPA_model import RunSimGluA2, RunModelWithFile
 from datetime import datetime
 # from LoadNPlot import CallWithRunId
 import os
