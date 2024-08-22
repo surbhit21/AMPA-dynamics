@@ -258,7 +258,7 @@ def savemodelparams(SP_model1,param_file):
 ## used for model fitting
 def RunSimGluA2(delta_x,v_p,D_c,D_s,rat):
     Jcin= 0.021
-    alpha= 1.5e-4
+    alpha= 1.8e-4
     beta = alpha*rat
     eta= 0.00070
     gamma= 1/(43)
@@ -276,15 +276,16 @@ def RunSimGluA2(delta_x,v_p,D_c,D_s,rat):
                                                       gamma,
                                                       delta_x,
                                                       500);
+    # breakpoint()
     ps_dist,pc_dist = SP_model1.solveNumerical()
     ps_spine = SP_model1.omega*(1/(1+ (SP_model1.gamma/(SP_model1.eta*ps_dist))))
     savemodelparams(SP_model1, "./ModelParamsTemporalGluA2.json")
     ps_spine = SP_model1.omega * (1 / (1 + (SP_model1.gamma / (SP_model1.eta * ps_dist))))
     fig, ax = plt.subplots(figsize=(10, 8))
     fsize = 16
-    ax.plot(SP_model1.x_grid, ps_dist, label=r"$p_s$", color=color_surf, linewidth=3.0)
-    ax.plot(SP_model1.x_grid, pc_dist, label=r"$P_c$", color=color_cyto, linewidth=3.0)
-    ax.plot(SP_model1.x_grid, ps_spine, label=r"$P_{spine}$", color=color_spine, linewidth=3.0)
+    ax.plot(SP_model1.x_grid, ps_dist / ps_dist[0], label=r"$p_s$", color=color_surf, linewidth=3.0)
+    ax.plot(SP_model1.x_grid, pc_dist / pc_dist[0], label=r"$P_c$", color=color_cyto, linewidth=3.0)
+    ax.plot(SP_model1.x_grid, ps_spine / ps_spine[0], label=r"$P_{spine}$", color=color_spine, linewidth=3.0)
     fig.tight_layout()
     plt.legend(prop={'size': fsize})
     SaveFigures("./ModelDistGluA2")
@@ -297,7 +298,7 @@ def RunSimGluA2(delta_x,v_p,D_c,D_s,rat):
 def RunSimGluA1(delta_x,v_p,D_c,D_s):
     Jcin = 0.02
     alpha = 1.5e-4
-    beta = alpha * 1.5
+    beta = 0.000225
     eta = 0.00050
     gamma = 1 / (43)
     SP_model1 = DendriteWithStochasticSpinesConstantV(D_s,
@@ -317,13 +318,14 @@ def RunSimGluA1(delta_x,v_p,D_c,D_s):
     sim_id = "002";
     ps_dist, pc_dist = SP_model1.solveNumerical()
     # x=np.arange(0,L,delta_x)
+    # breakpoint()
     savemodelparams(SP_model1,"./ModelParamsTemporalGluA1.json")
     ps_spine = SP_model1.omega * (1 / (1 + (SP_model1.gamma / (SP_model1.eta * ps_dist))))
     fig,ax = plt.subplots(figsize=(10, 8))
     fsize=16
-    ax.plot(SP_model1.x_grid,ps_dist,label=r"$p_s$",color = color_surf,linewidth=3.0)
-    ax.plot(SP_model1.x_grid,pc_dist,label=r"$P_c$",color = color_cyto,linewidth=3.0)
-    ax.plot(SP_model1.x_grid,ps_spine,label=r"$P_{spine}$",color = color_spine,linewidth=3.0)
+    ax.plot(SP_model1.x_grid,ps_dist/ps_dist[0],label=r"$p_s$",color = color_surf,linewidth=3.0)
+    ax.plot(SP_model1.x_grid,pc_dist/pc_dist[0],label=r"$P_c$",color = color_cyto,linewidth=3.0)
+    ax.plot(SP_model1.x_grid,ps_spine/ps_spine[0],label=r"$P_{spine}$",color = color_spine,linewidth=3.0)
     fig.tight_layout()
     plt.legend(prop={'size': fsize})
     SaveFigures("./ModelDistGluA1")
@@ -340,8 +342,16 @@ def RunModelWithFile(param_file):
      ps_spine = SP_model1.omega*(1/(1+ (SP_model1.gamma/(SP_model1.eta*ps_dist))))
      return ps_dist, pc_dist, ps_spine, SP_model1
 
-subunit = "GluA2"
-if subunit == "GluA2":
-    RunSimGluA2(0.24,1e-5,0.7,0.7,0.4)
-else:
+
+subunit = "GluA1"
+# if subunit == "GluA2":
+#     RunSimGluA2(0.24,1e-5,0.7,0.7,0.4)
+# else:
+#     RunSimGluA1(1, 1e-5, 0.1, 0.1)
+def RunGluA2SS():
+    RunSimGluA2(1, 1.e-4, 0.7, 0.7, 0.4)
+
+def RunGluA1SS():
     RunSimGluA1(1, 1e-5, 0.1, 0.1)
+
+# RunGluA1SS()

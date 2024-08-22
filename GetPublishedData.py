@@ -18,6 +18,9 @@ Tanaka_2012_S3a_PSD_file = os.path.join(root_folder,"Tanaka_2012_S3A_PSLM.csv")
 Tanaka_2012_S3a_Dend_file = os.path.join(root_folder,"Tanaka_2012_S3A_NON_PSLM.csv")
 Tanaka_2012_exo_data = os.path.join(root_folder,"Tanaka_2012_exo_NPLSM.csv")
 
+Oh_2015_stim_spine_vol = os.path.join(root_folder,"Oh2015_1D.csv")
+Oh_2015_unstim_spine_vol = os.path.join(root_folder,"Oh2015_1C.csv")
+
 Graves_2021_glua1 = os.path.join(root_folder,"Graves_2021_5DGreen.csv")
 Graves_2021_dsred = os.path.join(root_folder,"Graves_2021_5DRed.csv")
 
@@ -200,6 +203,44 @@ def get_CF_2023_4_data():
 
     # dataframe2 = dataframe2.iloc[3:]
     return pd.concat((control_df,cLTP_df))
+
+#
+# CF_PSD = pd.read_csv("./CF_2023_T4.csv")
+# # breakpoint()
+# CF_PSD["GluA2_Area_per_cluster"] = CF_PSD["GluA2_Area"]/CF_PSD["#_Cluster"]
+# CF_PSD["PSD_Area_per_cluster"] = CF_PSD["PSD_Area"]/CF_PSD["#_Cluster"]
+# CF_PSD.to_csv("./CF_2023_T4.csv", index=False)
+# CF_control_psd = CF_PSD.loc[CF_PSD['condition'] == "Control"]
+# CF_cLTP_psd = CF_PSD.loc[CF_PSD['condition'] == "cLTP"]
+# CF_time_points = CF_PSD["timepoint"].unique()
+# COI = "GluA2_Area"
+# cLTP_means = CF_cLTP_psd.groupby('timepoint')[[COI]].mean().to_numpy()
+# cLTP_means /= cLTP_means[0]
+# cLTP_stds = CF_cLTP_psd.groupby('timepoint')[[COI]].std().to_numpy()
+# cLTP_counts = CF_cLTP_psd.groupby('timepoint')[[COI]].count().to_numpy()
+# cLTP_sems = cLTP_stds/cLTP_counts
+#
+# cont_means = CF_control_psd.groupby('timepoint')[[COI]].mean().to_numpy()
+#     # breakpoint()
+# cont_means /= cont_means[0]
+# cont_stds = CF_control_psd.groupby('timepoint')[[COI]].std().to_numpy()
+# cont_counts = CF_control_psd.groupby('timepoint')[[COI]].count().to_numpy()
+# cont_sems = cont_stds / cont_counts
+#     # breakpoint()
+# plt_widget = SNSPlottingWidget()
+# fig,ax = plt.subplots(nrows=1,ncols=1,figsize=(8,6))
+# ax.spines['right'].set_visible(False)
+# ax.spines['top'].set_visible(False)
+# ax.errorbar(CF_time_points,100*cLTP_means[:,0],100*cLTP_stds[:,0], color="#ff5008", marker='o', linestyle='',
+#                 label="Synaptic GluA2",markersize=12,capsize=3,zorder=10)
+# ax.set_xlabel("Time (min)",fontsize=plt_widget.fsize)
+# ax.set_ylabel(r"$\%\Delta$ in fluorescence  ",fontsize=plt_widget.fsize)
+# plt.legend(frameon=False,fontsize=plt_widget.fsize,loc="upper right")
+# ax.set_ylim([70,300])
+# plt.tight_layout()
+# plt_widget.SaveFigures("{}/Clavet_Fournier_2023_fit_{}".format("./", ""))
+# plt.legend(frameon=False)
+# plt.show()
 # CF_PSD = get_CF_2023_4_data()
 # CF_control_psd = CF_PSD.loc[CF_PSD['condition'] == "Control"].dropna()
 # CF_cLTP_psd = CF_PSD.loc[CF_PSD['condition'] == "cLTP"].dropna()
@@ -289,3 +330,34 @@ def get_CF_2023_4_data():
 #            y=y)
 # # sns.
 # plt.show()
+
+def oh_data_stim_vol():
+    data = ReadCSVFull(Oh_2015_stim_spine_vol)
+    return data
+
+def vol_to_sa(fname):
+    data = ReadCSVFull(fname)
+    data_sa = data
+    data_sa_temp = data_sa
+    data_sa_temp[:,1] = data_sa[:,1] - 100
+    signs = data_sa_temp/np.abs(data_sa_temp)
+    data_sa[:,1:] =  np.abs(data_sa[:,1:]) ** (2/3)
+    data_sa *= signs
+    data_sa[:,1] += 100
+    return data
+
+
+def oh_data_unstim_vol():
+    data = ReadCSVFull(Oh_2015_unstim_spine_vol)
+    return data
+
+def oh_data_stim_sa():
+    data = vol_to_sa(Oh_2015_stim_spine_vol)
+    return data
+def oh_data_unstim_sa():
+    data = vol_to_sa(Oh_2015_unstim_spine_vol)
+    return data
+
+# stim_d,unstim_d = oh_data_stim_sa(),oh_data_unstim_sa()
+
+# breakpoint()

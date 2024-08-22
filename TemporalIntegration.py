@@ -84,21 +84,21 @@ def AMPATimeDynamics(t, y, Dc, Ds, Vp, lamdac, lamdas, alpha, beta, eta, omega, 
     dpsdt = dydt[1::3]
     dpspinedt = dydt[2::3]
 
+    # based on the updated and rechecked discretization calculations done 22 Aug 2024
     dpcdt[0] = Endocytosis(ps[0], alpha[0]) - Exocytosis(pc[0], beta[0]) - Degrdation(pc[0], lamdac) \
-               + 2. * Jcin * (1 / dx - Vp[0] / Dc[0]) + Dc[0] * (- 2. * (1 + dx * Vp[0] / Dc[0]) * pc[0] + 2. * pc[1]) / dx ** 2 - (
-                           Vp[0] / dx) * ((1 + 2 * dx * Vp[0] / Dc[0]) * pc[0] - pc[1])
+               + Jcin / dx + (Dc[0]/dx**2 - Vp[0]/dx )*pc[1] - (Dc[0]/dx**2) * pc[0]
     dpcdt[1:-1] = Endocytosis(ps[1:-1], alpha[1:-1]) - Exocytosis(pc[1:-1], beta[1:-1]) - Degrdation(pc[1:-1], lamdac) \
-                  + Dc[1:-1] * np.diff(pc, 2) - Vp[1:-1] * np.diff(pc, 1)[1:]
+                  + Dc[1:-1] * np.diff(pc, 2) / dx**2 - Vp[1:-1] * np.diff(pc, 1)[1:] / dx
     dpcdt[-1] = Endocytosis(ps[-1], alpha[-1]) - Exocytosis(pc[-1], beta[-1]) - Degrdation(pc[-1], lamdac) \
-                + Dc[-1] * (2. * pc[-2] - 2. * (1 - dx * Vp[-1] / Dc[-1]) * pc[-1]) / dx ** 2 - (Vp[-1] / dx) * (pc[-1] - pc[-2])
+                + (Dc[-1]/dx**2) * pc[-2] - (Dc[-1]/dx**2 + Vp[-1]**2/Dc[-1] + Vp[-1]/dx)*pc[-1]
 
     dpsdt[0] = Exocytosis(pc[0], beta[0]) - Endocytosis(ps[0], alpha[0]) - Degrdation(ps[0], lamdas) \
-               + 2. * Jsin / dx + Ds[0] * (2. * ps[1] - 2. * ps[0]) / dx ** 2 - SpineExchange(ps[0], pspine[0], eta[0], omega,
-                                                                                           gamma[0])
+               - SpineExchange(ps[0], pspine[0], eta[0], omega,gamma[0]) + (Ds[0]/dx**2)*ps[1] - \
+                (Ds[0]/dx**2)*ps[0] + Jsin/dx
     dpsdt[1:-1] = Exocytosis(pc[1:-1], beta[1:-1]) - Endocytosis(ps[1:-1], alpha[1:-1]) - Degrdation(ps[1:-1], lamdas) \
-                  + Ds[1:-1] * np.diff(ps, 2) - SpineExchange(ps[1:-1], pspine[1:-1], eta[1:-1], omega, gamma[1:-1])
+                  + Ds[1:-1] * np.diff(ps, 2) / dx**2 - SpineExchange(ps[1:-1], pspine[1:-1], eta[1:-1], omega, gamma[1:-1])
     dpsdt[-1] = Exocytosis(pc[-1], beta[-1]) - Endocytosis(ps[-1], alpha[-1]) - Degrdation(ps[-1], lamdas) \
-                + Ds[-1] * (- 2. * ps[-1] + 2. * ps[-2]) / dx ** 2 - SpineExchange(ps[-1], pspine[-1], eta[-1], omega, gamma[-1])
+                + (Ds[-1]/ dx**2) * ps[-2] - (Ds[-1]/dx**2)*ps[-1] - SpineExchange(ps[-1], pspine[-1], eta[-1], omega, gamma[-1])
 
     dpspinedt[0] = SpineExchange(ps[0], pspine[0], eta[0], omega, gamma[0])
     dpspinedt[1:-1] = SpineExchange(ps[1:-1], pspine[1:-1], eta[1:-1], omega, gamma[1:-1])  # Spine_rk(ps,pspine,eta,omega,gamma)
@@ -191,13 +191,19 @@ def GetProteindata(soln):
     p_sp_t = soln[2::3]
     return pc_t, ps_t, p_sp_t
 
-def savesimsettings(num_steps, time_steps, locations, protocol_file, dc_factors=[],ds_factors=[],vp_factors=[],alpha_factors=[],beta_factors=[],eta_factors=[],gamma_factors=[]):
+def savesimsettings(num_steps,type, time_steps, protocol_file,
+                    dc_factors=[],ds_factors=[],vp_factors=[],
+                    alpha_factors=[],beta_factors=[],
+                    eta_factors=[],gamma_factors=[],
+                    locations =[],unstim_locations = []):
     # assert num_steps == len(time_steps) - 1
     # assert num_steps == len(factors) - 1
     protocol_details = {}
+    protocol_details["type"] = type
     protocol_details["num_steps"] = num_steps
     protocol_details["time_steps"] = time_steps
-    protocol_details["locations"] = locations
+    protocol_details["stim locations"] = locations
+    protocol_details["unstim locations"] = locations
     # protocol_details["x_span"] = x_span
 
     protocol_details["dc_factors"] = dc_factors
@@ -212,3 +218,74 @@ def savesimsettings(num_steps, time_steps, locations, protocol_file, dc_factors=
     with open (protocol_file, 'a') as fp:
         json.dump(protocol_details,fp)
     fp.close()
+
+
+def GlobalPlasticityExperiment(param,uod_factor):
+    param_updated = param.copy()
+    param_updated *= uod_factor
+    return param_updated
+
+def PlasticityExperimentGauss(x_grid,params,param_names, locns, sigmas, factors,up_or_down,step_num,op_dir,dt):
+    new_pa = params.copy()
+    fig,ax = plt.subplots(figsize=(8, 6), nrows=1, ncols=1)
+    plt.yscale("log")
+    for pdx,p in enumerate(params):
+        if sigmas[pdx] == dx:
+            # print("modifying ",param_names[pdx],((factors[pdx])**up_or_down[pdx]))
+            # for l1 in locns:
+            new_pa[pdx] = Singledxchange(params[pdx],locns,factors[pdx],up_or_down[pdx])
+            # for l1 in locns:
+            #     print( new_pa[pdx][int(l1/dx)], new_pa[pdx][int(l1/dx)-1],params[pdx][int(l1/dx)], params[pdx][int(l1/dx)-1])
+        else:
+            new_pa[pdx] = ParamChangeGauss(x_grid,params[pdx],locns,sigmas[pdx],factors[pdx],up_or_down[pdx])
+        if not factors[pdx] == 1:
+            ax.plot(x_grid, new_pa[pdx] / params[pdx], label=param_names[pdx])
+
+    ax.spines[["top", "right"]].set_visible(False)
+    ax.set_xlabel(r"Distance from soma ($\mu$m)")
+    ax.set_ylabel(r"$Log_{10}$[Fold change]")
+    ax.tick_params(axis='both', which='major', labelsize=18)
+    # plt.xlabel("Simulation time in mins")
+    # plt.ylabel("Fold change")
+    plt.legend(frameon=False, fontsize=18)
+    SaveFigures("{0}/fig_protocol_{1}_step_{2}".format(op_dir, dt, step_num), dpi=300)
+    plt.show()
+    return new_pa
+
+def _1gaussian(x,cen1,sigma1):
+
+    return (np.exp((-((x-cen1)/sigma1)**2)))
+# def getNet_interval(locations,span):
+def Getchange_profile(x_grid,locns,sigma,factor):
+    change_profile = np.ones(x_grid.shape)
+    for l1 in locns:
+        print(l1,sigma,factor)
+        change_profile += (factor*_1gaussian(x_grid,l1,sigma))
+    # plt.plot(x_grid,change_profile)
+    # plt.show()
+        # breakpoint()
+    return change_profile
+def ParamChangeGauss(x_grid,param, locns, sigma, factor,uod):
+    bf = factor
+    b_sig= sigma
+    beta= param
+    beta_final = beta
+#     for each parameter, if the change factor is not = 1, we put a gaussian change at
+#     each location in locns array with mu = location, sigma = sigma and amp = factor
+    if not bf ==1:
+        # beta_final = beta
+        b_change_profile = Getchange_profile(x_grid,locns,b_sig,bf)
+        if uod == 1:
+            beta_final  = beta*b_change_profile
+        elif uod == -1:
+            beta_final = beta / b_change_profile
+        else:
+            return beta
+
+    return beta_final
+
+def Singledxchange(pa,locns,factor,uod):
+    p = pa.copy()
+    for l1 in locns:
+        p[int(l1/dx)]  *= ((factor)**uod)
+    return p

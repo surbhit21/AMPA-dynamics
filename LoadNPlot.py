@@ -20,7 +20,7 @@ import numpy as np
 from Utility import *
 from matplotlib.animation import FuncAnimation, PillowWriter
 from TemporalIntegration import baseline_param_file, dt
-date_time = "02_01_2024_16_46_47"
+date_time = "08_22_2024_16_19_06"
 per = "100"
 labels = ["PC","PS","PSPINE"]
 file_names = ["{}_{}_{}_percent.npy".format(i,date_time,per) for i in labels]#["PC_{}_{}_percent.npy".format(date_time,per),"PS_{}_{}_percent.npy".format(date_time, per),"PSPINE_{}_{}_percent.npy".format(date_time,per)]
@@ -40,15 +40,16 @@ def SaveFigures(filename,ext_list = [".png",".svg",".pdf"],dpi=300):
             
             
 for idx,fname in  enumerate(file_names):
+    print(labels[idx])
     data[labels[idx]] = np.load(input_folder+fname)
 timepoints = np.load(input_folder+"timepoints_{0}_{1}_percent.npy".format(date_time,per))
 folder2 = "10_23_2023_12_49_48"
 file_names2 = ["{}_{}_{}_percent.npy".format(i,folder2,per) for i in labels]#["PC_{}_{}_percent.npy".format(date_time,per),"PS_{}_{}_percent.npy".format(date_time, per),"PSPINE_{}_{}_percent.npy".format(date_time,per)]
 input_folder2 = "./Time-dependent/{}/".format(folder2);
 data2 = {}
-for idx,fname in  enumerate(file_names2):
-    data2[labels[idx]] = np.load(input_folder2+fname)
-timepoints2 = np.load(input_folder2+"timepoints_{0}_{1}_percent.npy".format(folder2,per))
+# for idx,fname in  enumerate(file_names2):
+#     data2[labels[idx]] = np.load(input_folder2+fname)
+# timepoints2 = np.load(input_folder2+"timepoints_{0}_{1}_percent.npy".format(folder2,per))
 # breakpoint()
 # plt.xlabel('x');
 # plt.ylabel('concentration')
@@ -65,7 +66,7 @@ P_s_init,P_c_init,P_spine_init,SP_model1 = RunModelWithFile(baseline_param_file)
 dx = SP_model1.dx
 x_grid = SP_model1.x_grid#np.arange(0,SP_model1L,dx)
 x_points = x_grid.shape[0]
-num_frames= int((2*60)/0.02)
+num_frames= int((0.25*60)/dt)
 f_rames = [i for i in range(0,len(timepoints),num_frames)]
 # def Aligndata(data1,data2,off_set1,off_set2):
 #     off_set1_dt = int(off_set1/dt)
@@ -99,7 +100,7 @@ line, = ax.plot(x_grid,  data[labels[0]][:,0], color = COLORS_dict["shaft_i"], l
 line2, = ax.plot(x_grid, data[labels[1]][:,0], color = COLORS_dict["shaft_s"], lw=1,label=labels[1])
 line3, = ax.plot(x_grid, data[labels[2]][:,0], color = COLORS_dict["spine_s"], lw=1,label=labels[2])
 
-txt1 = ax.text(x=0.3, y=0.8, s=r"stim location = {} $\mu m$".format(locn), transform=ax.transAxes)
+# txt1 = ax.text(x=0.3, y=0.8, s=r"stim location = {} $\mu m$".format(locn), transform=ax.transAxes)
 plt.legend(loc="upper right")
 plt.ylim([0,60])
 def animate(i):
@@ -107,8 +108,8 @@ def animate(i):
     line2.set_data(x_grid,  data[labels[1]][:,i])
     line3.set_data(x_grid,  data[labels[2]][:,i])
     title.set_text('time = %.3f mins'  % (timepoints[i]/60))
-    txt1.set_text(r"stim location = {} $\mu m$".format(locn))
-    return  line, line2, line3, title,txt1
+    # txt1.set_text(r"stim location = {} $\mu m$".format(locn))
+    return  line, line2, line3, title
 
 ani = FuncAnimation(fig, animate, interval=interval, blit=True, repeat=True, frames=f_rames)
 ani.save("{}/{}.gif".format(op_folder,date_time), dpi=dpi, writer=PillowWriter(fps=fps))
@@ -122,10 +123,10 @@ fig,ax = plt.subplots()
 line, = ax.plot(x_grid,  data[labels[0]][:,0]/data[labels[0]][:,0], color = COLORS_dict["shaft_i"], lw=1,label=labels[0])
 line2, = ax.plot(x_grid, data[labels[1]][:,0]/data[labels[1]][:,0], color = COLORS_dict["shaft_s"], lw=1,label=labels[1])
 line3, = ax.plot(x_grid, data[labels[2]][:,0]/data[labels[2]][:,0], color = COLORS_dict["spine_s"], lw=1,label=labels[2])
-txt1 = ax.text(x=0.3, y=0.8, s=r"stim location = {} $\mu m$".format(locn), transform=ax.transAxes)
+# txt1 = ax.text(x=0.3, y=0.8, s=r"stim location = {} $\mu m$".format(locn), transform=ax.transAxes)
 plt.legend(loc="upper left")
 plt.plot(x_grid,  np.ones(x_grid.shape), color = 'black', lw=1,label=labels[0])
-plt.ylim([0,2])
+plt.ylim([0,1.3])
 title = ax.text(0.5,0.95, "", bbox={'facecolor':'w', 'alpha':0.5, 'pad':5},
                 transform=ax.transAxes, ha="center")
 def animateRatio(i):
@@ -133,8 +134,8 @@ def animateRatio(i):
     line2.set_data(x_grid,  data[labels[1]][:,i]/data[labels[1]][:,0])
     line3.set_data(x_grid,  data[labels[2]][:,i]/data[labels[2]][:,0])
     title.set_text('time = %.3f mins'  % (timepoints[i]/60))
-    txt1.set_text(r"stim location = {} $\mu m$".format(locn))
-    return line, line2, line3, title, txt1
+    # txt1.set_text(r"stim location = {} $\mu m$".format(locn))
+    return line, line2, line3, title
 
 aniratio = FuncAnimation(fig, animateRatio, interval=interval, blit=True, repeat=True, frames=f_rames)
 aniratio.save("{}/ratio_{}.gif".format(op_folder,date_time), dpi=dpi, writer=PillowWriter(fps=fps))
@@ -230,9 +231,9 @@ def plotStimuLocation(data_to_plot,time_to_plot,locations,stim_start,stim_end,so
         # ax.set_xticklabels(xlabels)
     # plt.legend()
     # ax.errorbar(data_4g[:,0]+5,data_4g[:,1]/100,data_4g[:,2]/100,color = "orange")
-    plt.tight_layout()
-    SaveFigures("{}/{}_Time_Evolution_{}_at_location_{}".format(op_folder,stim_or_unstim,date_time,x_loc))
-    plt.show()
+        plt.tight_layout()
+        SaveFigures("{}/{}_Time_Evolution_{}_at_location_{}".format(op_folder,stim_or_unstim,date_time,loc))
+        plt.show()
 
 plottinglabs = [r"$P_c$",r"$P_s$",r"$P_{spine}$"]
 def plotIndividual(data1,data2,tps1,tps2,lc1,lab_index,d1_suf,d2_suf,ax_label=0):
@@ -386,23 +387,60 @@ def Plot3DMatrixIndividual(dat,locn,off_set,step,stim_start,stim_end,title,lab,c
     plt.show()
 
 
+def HeterosynapticAvgTemporal(data_to_plot,timepoints,stim_loc=[],unstim_loc=[]):
+    tps = (timepoints-30)/60
+    fig, ax = plt.subplots(figsize=(8, 6), ncols=1)
+    mean_stim_ps = data_to_plot[labels[1]][stim_loc].mean(axis=0)  # +data[labels[2]][loc, :]
+    mean_stim_pc = data_to_plot[labels[0]][stim_loc].mean(axis=0)
+    mean_stim_pspine = data_to_plot[labels[2]][stim_loc].mean(axis=0)
 
+    mean_unstim_ps = data_to_plot[labels[1]][unstim_loc].mean(axis=0)  # +data[labels[2]][loc, :]
+    mean_unstim_pc = data_to_plot[labels[0]][unstim_loc].mean(axis=0)
+    mean_unstim_pspine = data_to_plot[labels[2]][unstim_loc].mean(axis=0)
+    # breakpoint()
+    ax.plot(tps, 100 * (mean_stim_ps / mean_stim_ps[0]),
+            color=COLORS_dict["shaft_s"], lw=3,linestyle='-', label=r"S:$P_s$")
+    ax.plot(tps, 100 * (mean_stim_pc / mean_stim_pc[0]),
+            color=COLORS_dict["shaft_i"], lw=3,linestyle='-', label=r"S:$P_c$")
+    ax.plot(tps, 100 * (mean_stim_pspine/mean_stim_pspine[0]),
+            color=COLORS_dict["spine_s"], lw=3,linestyle='-', label=r"S:$P_{spine}$")
+
+    ax.plot(tps, 100 * (mean_unstim_ps / mean_unstim_ps[0]),
+            color=COLORS_dict["shaft_s"], lw=3, linestyle='--', label=r"U:$P_s$")
+    ax.plot(tps, 100 * (mean_unstim_pc / mean_unstim_pc[0]),
+            color=COLORS_dict["shaft_i"], lw=3, linestyle='--', label=r"U:$P_c$")
+    ax.plot(tps, 100 * (mean_unstim_pspine / mean_unstim_pspine[0]),
+            color=COLORS_dict["spine_s"], lw=3, linestyle='--', label=r"U:$P_{spine}$")
+    plt.plot(tps, 100*np.ones(tps.shape), color='black',linestyle='-.', lw=1, label=labels[0])
+    ax.spines[["right", "top"]].set_visible(False)
+    ax.legend(loc="upper right", frameon=False, fontsize=f_size)
+    plt.tight_layout()
+    plt.show()
 s_start = 0
-s_end = 1*60
+s_end = 10*60
+compareTanaka()
 # plotStimuLocation(data,timepoints,[int(locn/dx)],s_start,s_end)
 # compareClavet_Fournier(s_start,s_end)
 # breakpoint()
 # plotStimuLocation(aligned_sum,aligend_timepoints,[int(locn/dx)],s_start,s_end,"u")
-# plotStimuLocation([int((locn-5)/dx)],s_start,s_end,"u")
+# stim_locations = [250,251,252,253,255,256]
+# for loc in stim_locations:
+#     plotStimuLocation(data,timepoints,[int((loc)/dx)],s_start,s_end)
+# unstim_locations = [254]
+# for loc in unstim_locations:
+#     plotStimuLocation(data,timepoints,[int((loc)/dx)],s_start,s_end,"u")
+# HeterosynapticAvgTemporal(data,timepoints,stim_locations,unstim_locations)
+
+plotStimuLocation()
 # plotStimuLocation([int((locn-3)/dx)])
 # plotStimuLocation([int(46/dx)])
 # plotStimuLocation([int(58/dx)])
-comparePatterson([int(locn/dx)])
+# comparePatterson([int(locn/dx)])
 # breakpoint()
 # compareTanaka()
 # Plot3DMatrix(locn,50,1,0,60*60*2)
 # Plot3DMatrix(locn,50,1,0,60*60*2)
-Plot3DMatrixIndividual(data[labels[0]],locn,250,1,s_start,s_end,r"$P_c$","Pc","summer")
-Plot3DMatrixIndividual(data[labels[1]],locn,250,1,s_start,s_end,r"$P_s$","Ps","RdPu")
-Plot3DMatrixIndividual(data[labels[2]],locn,250,1,s_start,s_end,r"$P_{spine}$","p_spine","YlGn")
+# Plot3DMatrixIndividual(data[labels[0]],locn,250,1,s_start,s_end,r"$P_c$","Pc","summer")
+# Plot3DMatrixIndividual(data[labels[1]],locn,250,1,s_start,s_end,r"$P_s$","Ps","RdPu")
+# Plot3DMatrixIndividual(data[labels[2]],locn,250,1,s_start,s_end,r"$P_{spine}$","p_spine","YlGn")
 # def animateflux()

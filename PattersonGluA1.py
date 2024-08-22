@@ -83,69 +83,8 @@ def PlasticityExperiment(beta,alpha,gamma,dc,vp, ds, locns, x_sdx, up_or_down_fa
     plt.show()
     return beta_final,alpha_final, gamma_final, dc_final, vp_final, ds_final
 
-def _1gaussian(x,cen1,sigma1):
 
-    return (np.exp((-((x-cen1)/sigma1)**2)))
-# def getNet_interval(locations,span):
-def Getchange_profile(x_grid,locns,sigma,factor):
-    change_profile = np.ones(x_grid.shape)
-    for l1 in locns:
-        print(l1,sigma,factor)
-        change_profile += (factor*_1gaussian(x_grid,l1,sigma))
-    # plt.plot(x_grid,change_profile)
-    # plt.show()
-        # breakpoint()
-    return change_profile
-def ParamChangeGauss(x_grid,param, locns, sigma, factor,uod):
-    bf = factor
-    b_sig= sigma
-    beta= param
-    beta_final = beta
-#     for each parameter, if the change factor is not = 1, we put a gaussian change at
-#     each location in locns array with mu = location, sigma = sigma and amp = factor
-    if not bf ==1:
-        # beta_final = beta
-        b_change_profile = Getchange_profile(x_grid,locns,b_sig,bf)
-        if uod == 1:
-            beta_final  = beta*b_change_profile
-        elif uod == -1:
-            beta_final = beta / b_change_profile
-        else:
-            return beta
 
-    return beta_final
-
-def Singledxchange(pa,locns,factor,uod):
-    p = pa.copy()
-    for l1 in locns:
-        p[int(l1/dx)]  *= ((factor)**uod)
-    return p
-def PlasticityExperimentGauss(x_grid,params,param_names, locns, sigmas, factors,up_or_down,step_num,op_dir,dt):
-    new_pa = params.copy()
-    fig,ax = plt.subplots(figsize=(8, 6), nrows=1, ncols=1)
-    plt.yscale("log")
-    for pdx,p in enumerate(params):
-        if sigmas[pdx] == dx:
-            # print("modifying ",param_names[pdx],((factors[pdx])**up_or_down[pdx]))
-            # for l1 in locns:
-            new_pa[pdx] = Singledxchange(params[pdx],locns,factors[pdx],up_or_down[pdx])
-            # for l1 in locns:
-            #     print( new_pa[pdx][int(l1/dx)], new_pa[pdx][int(l1/dx)-1],params[pdx][int(l1/dx)], params[pdx][int(l1/dx)-1])
-        else:
-            new_pa[pdx] = ParamChangeGauss(x_grid,params[pdx],locns,sigmas[pdx],factors[pdx],up_or_down[pdx])
-        if not factors[pdx] == 1:
-            ax.plot(x_grid, new_pa[pdx] / params[pdx], label=param_names[pdx])
-
-    ax.spines[["top", "right"]].set_visible(False)
-    ax.set_xlabel(r"Distance from soma ($\mu$m)")
-    ax.set_ylabel(r"$Log_{10}$[Fold change]")
-    ax.tick_params(axis='both', which='major', labelsize=18)
-    # plt.xlabel("Simulation time in mins")
-    # plt.ylabel("Fold change")
-    plt.legend(frameon=False, fontsize=18)
-    SaveFigures("{0}/fig_protocol_{1}_step_{2}".format(op_dir, dt, step_num), dpi=300)
-    plt.show()
-    return new_pa
 def patterson2010GluA1Plasticity(ds,dc,vp,alpha,beta,eta,gamma, lo):
     """
     step zero, we simulate the model in steady state for 10 secs
@@ -154,7 +93,7 @@ def patterson2010GluA1Plasticity(ds,dc,vp,alpha,beta,eta,gamma, lo):
     step last, we change back the parameters to basal level and run simulation for 30 mins
     we integrate for a total of 30 mins to see the GluA1 dynamics
     """
-
+    type = "G1_cLTP"
     sim_time = 0
     time_steps = []
 
@@ -284,7 +223,7 @@ def patterson2010GluA1Plasticity(ds,dc,vp,alpha,beta,eta,gamma, lo):
     print("total simulation time = ", sim_time)
     data_mat = np.concatenate((data_mat, soln_last.y), axis=1)
     saveoutput(op_dir, date_time, data_mat, total_tps, 100, baseline_param_file)
-    savesimsettings(3, time_steps, lo,"{0}/protocol_{1}.json".format(op_dir, date_time),beta_factors=b_factors,
+    savesimsettings(3, type,time_steps, lo,"{0}/protocol_{1}.json".format(op_dir, date_time),beta_factors=b_factors,
                     gamma_factors=g_factors, dc_factors=dc_factors,vp_factors=vp_factors,ds_factors=ds_factors,alpha_factors=a_factors)
 
 

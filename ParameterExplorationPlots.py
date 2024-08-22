@@ -36,14 +36,14 @@ def SaveFigures(filename, ext_list=[".png", ".svg", ".pdf"], dpi=300):
     for ext in ext_list:
         plt.savefig(filename + ext, dpi=dpi)
 
-def ExploreParameter(delta_x,model_L,V_p_list = [],D_s_list=[],D_c_list = [],V_pinit=0.0,D_sinit=0.1,D_cinit = 0.1):
+def ExploreParameter(delta_x,model_L,V_p_list = [],D_s_list=[],D_c_list = [],V_pinit=0,D_sinit=0.1,D_cinit = 1e-3):
 
     dx = delta_x
     num_rows,num_cols = 3,3
     omega = 60
     fig,ax = plt.subplots(figsize = (30,25),nrows = num_rows,ncols = num_cols)
-    ps_orig,pc_orig, ps_spine_orig = AMPM.RunSimGluA2(dx,V_pinit,D_cinit,D_sinit)
-    x_grid = np.arange(0,model_L,dx)
+    x_grid,ps_orig,pc_orig, ps_spine_orig = AMPM.RunSimGluA2(dx,V_pinit,D_cinit,D_sinit,0.4)
+    # x_grid = np.arange(0,model_L,dx)
     # f = mticker.ScalarFormatter(useOffset=False, useMathText=True)
     # f = mticker.ScalarFormatter(useOffset=False, useMathText=True)
     # g = lambda x, pos: "${}$".format(f._formatSciNotation('%1.10e' % x))
@@ -60,7 +60,7 @@ def ExploreParameter(delta_x,model_L,V_p_list = [],D_s_list=[],D_c_list = [],V_p
         ax[i, 2].set_title(r"$P_{spine}$", fontsize=14)
     j = 0
     for i in range(len(V_p_list)):
-        ps_new,pc_new,ps_spine_new = AMPM.RunSimGluA2(dx,V_p_list[i],D_cinit,D_sinit)
+        x_grid,ps_new,pc_new,ps_spine_new = AMPM.RunSimGluA2(dx,V_p_list[i],D_cinit,D_sinit,0.4)
         # print(mticker.FuncFormatter(V_p_list[i]).)
         ax[j,0].plot(x_grid,ps_new/ps_orig[0],color = colors["surf"],alpha=1/(i*2+1),label=r"$V_p = {:.1E}$".format(V_p_list[i]))
         ax[j,1].plot(x_grid, pc_new/pc_orig[0], color=colors["cyto"], alpha=1 / (i * 2 + 1),label=r"$V_p = {:.1E}$".format(V_p_list[i]))
@@ -70,7 +70,7 @@ def ExploreParameter(delta_x,model_L,V_p_list = [],D_s_list=[],D_c_list = [],V_p
         # ax[j, 1].set_yscale('log')
     j = 1
     for i in range(len(D_s_list)):
-        ps_new,pc_new,ps_spine_new = AMPM.RunSimGluA2(dx,V_pinit,D_cinit,D_s_list[i])
+        x_grid,ps_new,pc_new,ps_spine_new = AMPM.RunSimGluA2(dx,V_pinit,D_cinit,D_s_list[i],0.4)
         ax[j,0].plot(x_grid,ps_new/ps_orig[0],color = colors["surf"],alpha=1/(i*2+1),label=r"$D_s = {:.1E}$".format(D_s_list[i]))
         ax[j,1].plot(x_grid, pc_new/pc_orig[0], color=colors["cyto"], alpha=1 / (i * 2 + 1),label=r"$D_s = {:.1E}$".format(D_s_list[i]))
         ax[j, 2].plot(x_grid, ps_spine_new/omega, color=colors["spine"], alpha=1 / (i * 2 + 1),label=r"$D_s = {:.1E}$".format(D_s_list[i]))
@@ -78,7 +78,7 @@ def ExploreParameter(delta_x,model_L,V_p_list = [],D_s_list=[],D_c_list = [],V_p
         ax[j, 1].set_yscale('log')
     j = 2
     for i in range(len(D_c_list)):
-        ps_new,pc_new,ps_spine_new = AMPM.RunSimGluA2(dx,V_pinit,D_c_list[i],D_sinit)
+        x_grid,ps_new,pc_new,ps_spine_new = AMPM.RunSimGluA2(dx,V_pinit,D_c_list[i],D_sinit,0.4)
         ax[j,0].plot(x_grid,ps_new/ps_orig[0],color = colors["surf"],alpha=1/(i*2+1),label=r"$D_c = {:.1E}$".format(D_c_list[i]))
         ax[j,1].plot(x_grid, pc_new/pc_orig[0], color=colors["cyto"], alpha=1 / (i * 2 + 1),label=r"$D_c = {:.1E}$".format(D_c_list[i]))
         ax[j, 2].plot(x_grid, ps_spine_new/omega, color=colors["spine"], alpha=1 / (i * 2 + 1),label=r"$D_c = {:.1E}$".format(D_c_list[i]))
@@ -97,5 +97,5 @@ def ExploreParameter(delta_x,model_L,V_p_list = [],D_s_list=[],D_c_list = [],V_p
     plt.show()
 
 
-ExploreParameter(delta_x=0.012,model_L=500,V_p_list = [1e-4,1e-2,1e-1],D_s_list = [0.01,10,100],D_c_list =  [0.01,10,100])
+ExploreParameter(delta_x=1,model_L=500,V_p_list = [1e-4,1e-2,1e-1],D_s_list = [0.01,10,100],D_c_list =  [0.01,10,100])
 

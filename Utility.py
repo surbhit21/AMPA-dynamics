@@ -20,8 +20,8 @@ COLORS_dict = {"spine":"#005f73",
                "shaft":'#43AA8B',
                "spine_s":"#F9C74F",
                "spine_i":'#CA6702',
-               "shaft_s":"#F94144",
-               "shaft_i":'#F8961E',
+               "shaft_s":"#ab09b7ff",
+               "shaft_i":'#43c0eeff',
                "s_2_i_ratio":"#43AA8B",
                "spine_2_shaft_ratio":"#4D908E",
                "soma":"#277DA1"}
@@ -472,3 +472,4 @@ class GluA2StoD():
                 return data[:, 1:]
             else:
                 raise ("some other type file sent, not proccessible")
+
