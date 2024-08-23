@@ -139,7 +139,7 @@ def get_tanaka_exo_data():
 # plt.show()
 
 
-# exo_data = get_tanaka_exo_data()
+exo_data = get_tanaka_exo_data()
 # breakpoint()
 def ReadCSVWillig(filename,head_rows = 0):
     """

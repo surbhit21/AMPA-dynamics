@@ -20,7 +20,7 @@ import numpy as np
 from Utility import *
 from matplotlib.animation import FuncAnimation, PillowWriter
 from TemporalIntegration import baseline_param_file, dt
-date_time = "08_22_2024_16_19_06"
+date_time = "08_23_2024_11_39_49"
 per = "100"
 labels = ["PC","PS","PSPINE"]
 file_names = ["{}_{}_{}_percent.npy".format(i,date_time,per) for i in labels]#["PC_{}_{}_percent.npy".format(date_time,per),"PS_{}_{}_percent.npy".format(date_time, per),"PSPINE_{}_{}_percent.npy".format(date_time,per)]

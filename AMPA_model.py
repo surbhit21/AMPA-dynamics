@@ -258,9 +258,9 @@ def savemodelparams(SP_model1,param_file):
 ## used for model fitting
 def RunSimGluA2(delta_x,v_p,D_c,D_s,rat):
     Jcin= 0.021
-    alpha= 1.8e-4
+    alpha= 6e-4
     beta = alpha*rat
-    eta= 0.00070
+    eta = 0.00070
     gamma= 1/(43)
     SP_model1 = DendriteWithStochasticSpinesConstantV(D_s,
                                                       D_c,
@@ -283,9 +283,9 @@ def RunSimGluA2(delta_x,v_p,D_c,D_s,rat):
     ps_spine = SP_model1.omega * (1 / (1 + (SP_model1.gamma / (SP_model1.eta * ps_dist))))
     fig, ax = plt.subplots(figsize=(10, 8))
     fsize = 16
-    ax.plot(SP_model1.x_grid, ps_dist / ps_dist[0], label=r"$p_s$", color=color_surf, linewidth=3.0)
-    ax.plot(SP_model1.x_grid, pc_dist / pc_dist[0], label=r"$P_c$", color=color_cyto, linewidth=3.0)
-    ax.plot(SP_model1.x_grid, ps_spine / ps_spine[0], label=r"$P_{spine}$", color=color_spine, linewidth=3.0)
+    ax.plot(SP_model1.x_grid, ps_dist , label=r"$GluA2:p_s$", color=color_surf, linewidth=3.0)
+    ax.plot(SP_model1.x_grid, pc_dist , label=r"$GluA2:P_c$", color=color_cyto, linewidth=3.0)
+    ax.plot(SP_model1.x_grid, ps_spine, label=r"$GluA2:P_{PSD}$", color=color_spine, linewidth=3.0)
     fig.tight_layout()
     plt.legend(prop={'size': fsize})
     SaveFigures("./ModelDistGluA2")
@@ -297,9 +297,9 @@ def RunSimGluA2(delta_x,v_p,D_c,D_s,rat):
 ## used for temporal integration
 def RunSimGluA1(delta_x,v_p,D_c,D_s):
     Jcin = 0.02
-    alpha = 1.5e-4
-    beta = 0.000225
-    eta = 0.00050
+    alpha = 0.0005
+    beta = alpha * 1.7
+    eta = 0.0003
     gamma = 1 / (43)
     SP_model1 = DendriteWithStochasticSpinesConstantV(D_s,
                                                       D_c,
@@ -323,9 +323,9 @@ def RunSimGluA1(delta_x,v_p,D_c,D_s):
     ps_spine = SP_model1.omega * (1 / (1 + (SP_model1.gamma / (SP_model1.eta * ps_dist))))
     fig,ax = plt.subplots(figsize=(10, 8))
     fsize=16
-    ax.plot(SP_model1.x_grid,ps_dist/ps_dist[0],label=r"$p_s$",color = color_surf,linewidth=3.0)
-    ax.plot(SP_model1.x_grid,pc_dist/pc_dist[0],label=r"$P_c$",color = color_cyto,linewidth=3.0)
-    ax.plot(SP_model1.x_grid,ps_spine/ps_spine[0],label=r"$P_{spine}$",color = color_spine,linewidth=3.0)
+    ax.plot(SP_model1.x_grid,ps_dist,label=r"$GluA1:p_s$",color = color_surf,linewidth=3.0)
+    ax.plot(SP_model1.x_grid,pc_dist,label=r"$GluA1:P_c$",color = color_cyto,linewidth=3.0)
+    ax.plot(SP_model1.x_grid,ps_spine,label=r"$GluA1:P_{PSD}$",color = color_spine,linewidth=3.0)
     fig.tight_layout()
     plt.legend(prop={'size': fsize})
     SaveFigures("./ModelDistGluA1")
@@ -353,5 +353,6 @@ def RunGluA2SS():
 
 def RunGluA1SS():
     RunSimGluA1(1, 1e-5, 0.1, 0.1)
-
-# RunGluA1SS()
+#
+RunGluA1SS()
+# RunGluA2SS()

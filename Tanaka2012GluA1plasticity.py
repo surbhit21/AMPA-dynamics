@@ -23,7 +23,7 @@ def Tanaka2012GluA1Plasticity(ds,dc,vp,alpha,beta,eta,gamma):
     step last, we change back the parameters to basal level and run simulation for 50 mins
     we integrate for a total of 30 mins to see the GluA1 dynamics
     """
-    type = "G2_cLTP"
+    type = "G1_cLTP"
     sim_time = 0
     time_steps = [0]
     b_factors = [1]
@@ -54,7 +54,7 @@ def Tanaka2012GluA1Plasticity(ds,dc,vp,alpha,beta,eta,gamma):
     """
     Step 1
     """
-    b1 = 10
+    b1 = 3.5
     e1 = 1.3
     new_y_init = data_mat[:, -1]  # Bleach(data_mat[:, -1],lo,x_sdx)
     beta_step1 = GlobalPlasticityExperiment(beta, b1)
