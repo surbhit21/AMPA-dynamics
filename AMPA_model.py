@@ -352,7 +352,7 @@ def RunGluA2SS():
     RunSimGluA2(1, 1.e-4, 0.7, 0.7, 0.4)
 
 def RunGluA1SS():
-    RunSimGluA1(1, 1e-5, 0.1, 0.1)
+    RunSimGluA1(1, 1e-4, 0.1, 0.1)
 #
-RunGluA1SS()
+# RunGluA1SS()
 # RunGluA2SS()

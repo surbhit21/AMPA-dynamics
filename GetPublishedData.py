@@ -8,7 +8,7 @@ import numpy as np
 import os
 import pandas as pd
 from  SNSPlottingWidget import SNSPlottingWidget
-from Utility import COLORS_dict
+from Utility import COLORS_dict, SaveFigures
 import scipy as sp
 root_folder = "/Users/surbhitwagle/Desktop/Surbhit/Work/PhD/2020/PhD/MPIBR/PhD-Project/Experimental_collab/Published/"
 Patterson_2010_4c_file = os.path.join(root_folder,"Patterson_2010_4C.csv")
@@ -115,7 +115,68 @@ def get_tanaka_exo_data():
     exo_data = ReadCSVFull(Tanaka_2012_exo_data)
     return exo_data
 
+def process_tanaka_exo_data():
+    exo_data = get_tanaka_exo_data()
+    scaled_exo_data = exo_data
+    scaled_exo_data[:,1] = exo_data[:,1]/exo_data[0,1]
+    scaled_exo_data[:,2] = (exo_data[:,2]/exo_data[:,1]) * scaled_exo_data[:,1]
+    return scaled_exo_data
+f_size = 16
+def plotTanakaExoprofile():
+    fig, ax = plt.subplots(nrows=1, ncols=1)
+    tanaka_exo_data = process_tanaka_exo_data()
+    plt.errorbar(tanaka_exo_data[:, 0], tanaka_exo_data[:, 1], tanaka_exo_data[:, 2], label="Non-PSLM: Tanaka \n and Hirano 2012", marker="^",
+                 linestyle="", color="k")
+    glua1_exo_profile_model = np.ones(tanaka_exo_data[:, 1].shape)
+    glua1_exo_profile_model[1:11] = glua1_exo_profile_model[1:11] * 3.5
+    ax.spines['right'].set_visible(False)
+    ax.spines['top'].set_visible(False)
+    plt.plot(tanaka_exo_data[:, 0], glua1_exo_profile_model, "bo",label="Model")
+    xs = np.arange(tanaka_exo_data[0, 0],tanaka_exo_data[-1, 0],0.1)
+    ys = np.ones(xs.shape)
+    plt.plot(xs, ys, color="k", marker=None, linestyle="--", alpha=0.5)
+    plt.ylabel(r"Exocytosis rate ($\beta$) fold change", fontsize=f_size)
+    plt.xlabel(r"Time (mins)", fontsize=f_size)
+    ax.hlines(y=.3, xmin=1, xmax=10, linewidth=2, color='r')
+    ax.text(x=2, y=0.5, s="Gly stim.", fontsize=f_size)
+    ax.legend(loc="upper right", frameon=False, fontsize=f_size)
+    SaveFigures("./Tanaka_exo_profile")
+    plt.show()
 
+def plot_spine_head_data():
+    fig, ax = plt.subplots(nrows=1, ncols=1)
+    data = pd.read_csv(os.path.join(root_folder,"K_Willig/Fig2F.csv"))
+    coi = ["Before LTP. -15min", "during LTP. -5min","30min after LTP","60min after LTP","120min after LTP" ]
+    means = data.mean()[2:7]#np.zeros((len(coi),1))
+    stds = data.std()[2:7]#np.zeros((len(coi), 1))
+    sems = data.sem()[2:7]#np.zeros((len(coi), 1))
+    norm_means = means/means[0]
+    norm_std = (stds/means) * norm_means
+    norm_sem = (sems / means) * norm_means
+    print(norm_means,norm_sem)
+    time_points = np.array([-5,10,30,60,120])
+    plt.errorbar(time_points, norm_means, norm_sem,
+                 label=r"$\Delta$ spine head:"+" \n Clavet-Fournier et al. 2024", marker="o",
+                 linestyle="", color="r")
+    xs = np.arange(-5,120,2.5)
+    eta = np.ones(xs.shape)
+    eta[2:] = 1.3
+    ax.spines['right'].set_visible(False)
+    ax.spines['top'].set_visible(False)
+    plt.plot(xs, eta, "bo", label="Model")
+    xs = np.arange(time_points[ 0], time_points[-1], 5)
+    ys = np.ones(xs.shape)
+    plt.plot(xs, ys, color="k", marker=None, linestyle="--", alpha=0.5)
+    plt.ylabel(r"Synaptic uptake rate ($\eta$) fold change ", fontsize=f_size)
+    plt.xlabel(r"Time (mins)", fontsize=f_size)
+    ax.hlines(y=.9, xmin=0, xmax=10, linewidth=2, color='r')
+    ax.text(x=2, y=0.95, s="Gly stim.", fontsize=f_size)
+    ax.legend(loc="upper right", frameon=False, fontsize=f_size)
+    SaveFigures("./Clavet_Fournier_sp_area_profile")
+    plt.show()
+# plotTanakaExoprofile()
+# plot_spine_head_data()
+# breakpoint()
 # patterson_spine_sizes = patterson_data_1b()
 # breakpoint()
 # glua1_data,dsred_data = graves_data_5d()
@@ -139,7 +200,7 @@ def get_tanaka_exo_data():
 # plt.show()
 
 
-exo_data = get_tanaka_exo_data()
+
 # breakpoint()
 def ReadCSVWillig(filename,head_rows = 0):
     """
@@ -205,40 +266,46 @@ def get_CF_2023_4_data():
     return pd.concat((control_df,cLTP_df))
 
 #
-# CF_PSD = pd.read_csv("./CF_2023_T4.csv")
+# CF_PSD = get_CF_2023_4_data()#pd.read_csv("./CF_2023_T4.csv")
 # # breakpoint()
-# CF_PSD["GluA2_Area_per_cluster"] = CF_PSD["GluA2_Area"]/CF_PSD["#_Cluster"]
-# CF_PSD["PSD_Area_per_cluster"] = CF_PSD["PSD_Area"]/CF_PSD["#_Cluster"]
+# # CF_PSD["GluA2_Area_per_cluster"] = CF_PSD["GluA2_Area"]/CF_PSD["#_Cluster"]
+# # CF_PSD["PSD_Area_per_cluster"] = CF_PSD["PSD_Area"]/CF_PSD["#_Cluster"]
 # CF_PSD.to_csv("./CF_2023_T4.csv", index=False)
 # CF_control_psd = CF_PSD.loc[CF_PSD['condition'] == "Control"]
 # CF_cLTP_psd = CF_PSD.loc[CF_PSD['condition'] == "cLTP"]
 # CF_time_points = CF_PSD["timepoint"].unique()
 # COI = "GluA2_Area"
 # cLTP_means = CF_cLTP_psd.groupby('timepoint')[[COI]].mean().to_numpy()
-# cLTP_means /= cLTP_means[0]
+# # cLTP_means /= cLTP_means[0]
 # cLTP_stds = CF_cLTP_psd.groupby('timepoint')[[COI]].std().to_numpy()
 # cLTP_counts = CF_cLTP_psd.groupby('timepoint')[[COI]].count().to_numpy()
 # cLTP_sems = cLTP_stds/cLTP_counts
 #
 # cont_means = CF_control_psd.groupby('timepoint')[[COI]].mean().to_numpy()
 #     # breakpoint()
-# cont_means /= cont_means[0]
+# # cont_means /= cont_means[0]
 # cont_stds = CF_control_psd.groupby('timepoint')[[COI]].std().to_numpy()
 # cont_counts = CF_control_psd.groupby('timepoint')[[COI]].count().to_numpy()
 # cont_sems = cont_stds / cont_counts
+# cLTP_means /= cont_means
+# cLTP_means /= cLTP_means[0]
+# cont_means /= cont_means
 #     # breakpoint()
 # plt_widget = SNSPlottingWidget()
 # fig,ax = plt.subplots(nrows=1,ncols=1,figsize=(8,6))
 # ax.spines['right'].set_visible(False)
 # ax.spines['top'].set_visible(False)
 # ax.errorbar(CF_time_points,100*cLTP_means[:,0],100*cLTP_stds[:,0], color="#ff5008", marker='o', linestyle='',
-#                 label="Synaptic GluA2",markersize=12,capsize=3,zorder=10)
+#                 label="GluA2 in PSD: cLTP",markersize=12,capsize=3,zorder=10)
+# ax.errorbar(CF_time_points, 100 * cont_means[:, 0], 100 * cont_stds[:, 0], color="k", marker='^', linestyle='',
+#             label="GluA2 in PSD: control", markersize=12, capsize=3, zorder=10)
+# ax.plot(CF_time_points,100*np.ones(CF_time_points.shape),'k--')
 # ax.set_xlabel("Time (min)",fontsize=plt_widget.fsize)
 # ax.set_ylabel(r"$\%\Delta$ in fluorescence  ",fontsize=plt_widget.fsize)
 # plt.legend(frameon=False,fontsize=plt_widget.fsize,loc="upper right")
-# ax.set_ylim([70,300])
+# # ax.set_ylim([70,300])
 # plt.tight_layout()
-# plt_widget.SaveFigures("{}/Clavet_Fournier_2023_fit_{}".format("./", ""))
+# # # plt_widget.SaveFigures("{}/Clavet_Fournier_2023_fit_{}".format("./", ""))
 # plt.legend(frameon=False)
 # plt.show()
 # CF_PSD = get_CF_2023_4_data()

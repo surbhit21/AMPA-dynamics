@@ -11,6 +11,7 @@ import os
 import pandas as pd
 from pathlib import Path
 from scipy.optimize import curve_fit
+import matplotlib.pyplot as plt
 cmaps = {}
 
 gradient = np.linspace(0, 1, 256)
@@ -473,3 +474,13 @@ class GluA2StoD():
             else:
                 raise ("some other type file sent, not proccessible")
 
+
+def SaveFigures(filename,ext_list = [".png",".svg",".pdf"],dpi=300):
+    """
+
+        function to save figures
+        required arguments:
+            filename
+    """
+    for ext in ext_list:
+        plt.savefig(filename+ext,dpi=dpi)

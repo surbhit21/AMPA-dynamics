@@ -7,7 +7,7 @@ Created on Thu Dec  8 11:26:13 2022
 """
 import math
 import os.path
-
+import argparse
 from AMPA_model import RunModelWithFile
 from GetPublishedData import *
 
@@ -17,129 +17,61 @@ matplotlib.use("Qt5Agg")
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 import numpy as np
-from Utility import *
 from matplotlib.animation import FuncAnimation, PillowWriter
+import scipy.stats as sst
 from TemporalIntegration import baseline_param_file, dt
-date_time = "08_23_2024_11_39_49"
-per = "100"
-labels = ["PC","PS","PSPINE"]
-file_names = ["{}_{}_{}_percent.npy".format(i,date_time,per) for i in labels]#["PC_{}_{}_percent.npy".format(date_time,per),"PS_{}_{}_percent.npy".format(date_time, per),"PSPINE_{}_{}_percent.npy".format(date_time,per)]
-input_folder = "./Time-dependent/{}/".format(date_time);
-data = {}
-op_folder = os.path.join(input_folder+"figures_{}".format(date_time))
-os.makedirs(op_folder, exist_ok=True)
-def SaveFigures(filename,ext_list = [".png",".svg",".pdf"],dpi=300):
-    """
+from Utility import *
 
-        function to save figures
-        required arguments:
-            filename
-    """
-    for ext in ext_list:
-        plt.savefig(filename+ext,dpi=dpi)
-            
-            
-for idx,fname in  enumerate(file_names):
-    print(labels[idx])
-    data[labels[idx]] = np.load(input_folder+fname)
-timepoints = np.load(input_folder+"timepoints_{0}_{1}_percent.npy".format(date_time,per))
-folder2 = "10_23_2023_12_49_48"
-file_names2 = ["{}_{}_{}_percent.npy".format(i,folder2,per) for i in labels]#["PC_{}_{}_percent.npy".format(date_time,per),"PS_{}_{}_percent.npy".format(date_time, per),"PSPINE_{}_{}_percent.npy".format(date_time,per)]
-input_folder2 = "./Time-dependent/{}/".format(folder2);
-data2 = {}
-# for idx,fname in  enumerate(file_names2):
-#     data2[labels[idx]] = np.load(input_folder2+fname)
-# timepoints2 = np.load(input_folder2+"timepoints_{0}_{1}_percent.npy".format(folder2,per))
-# breakpoint()
-# plt.xlabel('x');
-# plt.ylabel('concentration')
-# breakpoint()
-dpi = 300
-interval = 500
-locn = 50
-beta_span = 3
-alpha_span = 10
-fps = 25
-f_size= 18
-P_s_init,P_c_init,P_spine_init,SP_model1 = RunModelWithFile(baseline_param_file)
-# L = 500.0
-dx = SP_model1.dx
-x_grid = SP_model1.x_grid#np.arange(0,SP_model1L,dx)
-x_points = x_grid.shape[0]
-num_frames= int((0.25*60)/dt)
-f_rames = [i for i in range(0,len(timepoints),num_frames)]
-# def Aligndata(data1,data2,off_set1,off_set2):
-#     off_set1_dt = int(off_set1/dt)
-#     off_set2_dt = int(off_set2/dt)
-#     off_data1 = {}
-#     off_data2 = {}
-#     tp1 = timepoints[off_set1_dt:]
-#     tp2 = timepoints2[off_set2_dt:]
-#     for key in data1.keys():
-#         off_data1[key] = data1[key][:,off_set1_dt:]
-#         off_data2[key] = data2[key][:,off_set2_dt:]
-#     return off_data1,off_data2,tp1,tp2
-#
-# aligned_d1,aligned_d2,tp1,tp2 =Aligndata(data,data2,30,30)
-# if aligned_d2[labels[0]].shape[1] > aligned_d1[labels[0]].shape[1]:
-#     aligned_sum = aligned_d2
-#     # aligend_timepoints = timepoints2
-#     for key in aligned_d2.keys():
-#         aligned_sum[key] += aligned_d1[key]# breakpoint()
-# T = 20
-# dt = 0.002*10
-# t_grid =  np.arange(0,T+dt,dt)
-# t_points = t_grid.shape[0]
 """
 Plotting the complete profile dynamics over simulated time
 """
-fig,ax = plt.subplots()
-title = ax.text(0.5,0.95, "", bbox={'facecolor':'w', 'alpha':0.5, 'pad':5},
-                transform=ax.transAxes, ha="center")
-line, = ax.plot(x_grid,  data[labels[0]][:,0], color = COLORS_dict["shaft_i"], lw=1,label=labels[0])
-line2, = ax.plot(x_grid, data[labels[1]][:,0], color = COLORS_dict["shaft_s"], lw=1,label=labels[1])
-line3, = ax.plot(x_grid, data[labels[2]][:,0], color = COLORS_dict["spine_s"], lw=1,label=labels[2])
-
-# txt1 = ax.text(x=0.3, y=0.8, s=r"stim location = {} $\mu m$".format(locn), transform=ax.transAxes)
-plt.legend(loc="upper right")
-plt.ylim([0,60])
-def animate(i):
-    line.set_data(x_grid,  data[labels[0]][:,i])
-    line2.set_data(x_grid,  data[labels[1]][:,i])
-    line3.set_data(x_grid,  data[labels[2]][:,i])
-    title.set_text('time = %.3f mins'  % (timepoints[i]/60))
-    # txt1.set_text(r"stim location = {} $\mu m$".format(locn))
-    return  line, line2, line3, title
-
-ani = FuncAnimation(fig, animate, interval=interval, blit=True, repeat=True, frames=f_rames)
-ani.save("{}/{}.gif".format(op_folder,date_time), dpi=dpi, writer=PillowWriter(fps=fps))
-plt.close()
+# fig,ax = plt.subplots()
+# title = ax.text(0.5,0.95, "", bbox={'facecolor':'w', 'alpha':0.5, 'pad':5},
+#                 transform=ax.transAxes, ha="center")
+# line, = ax.plot(x_grid,  data[labels[0]][:,0], color = COLORS_dict["shaft_i"], lw=1,label=labels[0])
+# line2, = ax.plot(x_grid, data[labels[1]][:,0], color = COLORS_dict["shaft_s"], lw=1,label=labels[1])
+# line3, = ax.plot(x_grid, data[labels[2]][:,0], color = COLORS_dict["spine_s"], lw=1,label=labels[2])
+#
+# # txt1 = ax.text(x=0.3, y=0.8, s=r"stim location = {} $\mu m$".format(locn), transform=ax.transAxes)
+# plt.legend(loc="upper right")
+# plt.ylim([0,60])
+# def animate(i):
+#     line.set_data(x_grid,  data[labels[0]][:,i])
+#     line2.set_data(x_grid,  data[labels[1]][:,i])
+#     line3.set_data(x_grid,  data[labels[2]][:,i])
+#     title.set_text('time = %.3f mins'  % (timepoints[i]/60))
+#     # txt1.set_text(r"stim location = {} $\mu m$".format(locn))
+#     return  line, line2, line3, title
+#
+# ani = FuncAnimation(fig, animate, interval=interval, blit=True, repeat=True, frames=f_rames)
+# ani.save("{}/{}.gif".format(op_folder,date_time), dpi=dpi, writer=PillowWriter(fps=fps))
+# plt.close()
 
 """
 Plotting a time gif of ratio of change from initial state
 """
 
-fig,ax = plt.subplots()
-line, = ax.plot(x_grid,  data[labels[0]][:,0]/data[labels[0]][:,0], color = COLORS_dict["shaft_i"], lw=1,label=labels[0])
-line2, = ax.plot(x_grid, data[labels[1]][:,0]/data[labels[1]][:,0], color = COLORS_dict["shaft_s"], lw=1,label=labels[1])
-line3, = ax.plot(x_grid, data[labels[2]][:,0]/data[labels[2]][:,0], color = COLORS_dict["spine_s"], lw=1,label=labels[2])
-# txt1 = ax.text(x=0.3, y=0.8, s=r"stim location = {} $\mu m$".format(locn), transform=ax.transAxes)
-plt.legend(loc="upper left")
-plt.plot(x_grid,  np.ones(x_grid.shape), color = 'black', lw=1,label=labels[0])
-plt.ylim([0,1.3])
-title = ax.text(0.5,0.95, "", bbox={'facecolor':'w', 'alpha':0.5, 'pad':5},
-                transform=ax.transAxes, ha="center")
-def animateRatio(i):
-    line.set_data(x_grid,  data[labels[0]][:,i]/data[labels[0]][:,0])
-    line2.set_data(x_grid,  data[labels[1]][:,i]/data[labels[1]][:,0])
-    line3.set_data(x_grid,  data[labels[2]][:,i]/data[labels[2]][:,0])
-    title.set_text('time = %.3f mins'  % (timepoints[i]/60))
-    # txt1.set_text(r"stim location = {} $\mu m$".format(locn))
-    return line, line2, line3, title
-
-aniratio = FuncAnimation(fig, animateRatio, interval=interval, blit=True, repeat=True, frames=f_rames)
-aniratio.save("{}/ratio_{}.gif".format(op_folder,date_time), dpi=dpi, writer=PillowWriter(fps=fps))
-plt.close()
+# fig,ax = plt.subplots()
+# line, = ax.plot(x_grid,  data[labels[0]][:,0]/data[labels[0]][:,0], color = COLORS_dict["shaft_i"], lw=1,label=labels[0])
+# line2, = ax.plot(x_grid, data[labels[1]][:,0]/data[labels[1]][:,0], color = COLORS_dict["shaft_s"], lw=1,label=labels[1])
+# line3, = ax.plot(x_grid, data[labels[2]][:,0]/data[labels[2]][:,0], color = COLORS_dict["spine_s"], lw=1,label=labels[2])
+# # txt1 = ax.text(x=0.3, y=0.8, s=r"stim location = {} $\mu m$".format(locn), transform=ax.transAxes)
+# plt.legend(loc="upper left")
+# plt.plot(x_grid,  np.ones(x_grid.shape), color = 'black', lw=1,label=labels[0])
+# plt.ylim([0,1.3])
+# title = ax.text(0.5,0.95, "", bbox={'facecolor':'w', 'alpha':0.5, 'pad':5},
+#                 transform=ax.transAxes, ha="center")
+# def animateRatio(i):
+#     line.set_data(x_grid,  data[labels[0]][:,i]/data[labels[0]][:,0])
+#     line2.set_data(x_grid,  data[labels[1]][:,i]/data[labels[1]][:,0])
+#     line3.set_data(x_grid,  data[labels[2]][:,i]/data[labels[2]][:,0])
+#     title.set_text('time = %.3f mins'  % (timepoints[i]/60))
+#     # txt1.set_text(r"stim location = {} $\mu m$".format(locn))
+#     return line, line2, line3, title
+#
+# aniratio = FuncAnimation(fig, animateRatio, interval=interval, blit=True, repeat=True, frames=f_rames)
+# aniratio.save("{}/ratio_{}.gif".format(op_folder,date_time), dpi=dpi, writer=PillowWriter(fps=fps))
+# plt.close()
 
 
 """
@@ -201,7 +133,7 @@ CF_cLTP_psd = CF_PSD.loc[CF_PSD['condition'] == "cLTP"]
 CF_time_points = CF_PSD["timepoint"].unique()
 # breakpoint()
 
-def plotStimuLocation(data_to_plot,time_to_plot,locations,stim_start,stim_end,sou="s",ax_label=0):
+def plotStimuLocation(data_to_plot,op_folder,time_to_plot,locations,stim_start,stim_end,sou="s",ax_label=0):
     stim_or_unstim = "ST"
     if sou == "u":
         stim_or_unstim="UN"
@@ -236,7 +168,7 @@ def plotStimuLocation(data_to_plot,time_to_plot,locations,stim_start,stim_end,so
         plt.show()
 
 plottinglabs = [r"$P_c$",r"$P_s$",r"$P_{spine}$"]
-def plotIndividual(data1,data2,tps1,tps2,lc1,lab_index,d1_suf,d2_suf,ax_label=0):
+def plotIndividual(data1,data2,op_folder,tps1,tps2,lc1,lab_index,d1_suf,d2_suf,ax_label=0):
     fig, ax = plt.subplots(figsize=(8, 6), nrows=1, ncols=1)
     ax.plot(tps1,data1[labels[lab_index]][lc1, :]/data1[labels[lab_index]][lc1, 0],label=plottinglabs[lab_index]+d1_suf)
     ax.plot(tps2, data2[labels[lab_index]][lc1, :]/data2[labels[lab_index]][lc1, 0], label=plottinglabs[lab_index] + d2_suf)
@@ -254,7 +186,7 @@ def plotIndividual(data1,data2,tps1,tps2,lc1,lab_index,d1_suf,d2_suf,ax_label=0)
     plt.show()
 
 # plotIndividual(aligned_d1,aligned_d2,tp1,tp2,250,2," R1"," R2")
-def comparePatterson(loc):
+def comparePatterson(loc,op_folder):
     fig,ax = plt.subplots(figsize = (8,6),nrows=1,ncols=1)
     tps = (timepoints-30)/60
     total_surf = (data[labels[1]][loc,:] + data[labels[2]][loc, :])
@@ -272,7 +204,15 @@ def comparePatterson(loc):
     SaveFigures("{}/Patterson_2010_fit_{}".format(op_folder, date_time))
     plt.show()
 
-def compareTanaka():
+
+def mean_confidence_interval(data, confidence=0.95):
+    a = 1.0 * np.array(data)
+    n = a.shape[0]
+    m, se = np.mean(a,axis=1),sst.sem(a,axis=1)
+    h = se * sst.t.ppf((1 + confidence) / 2., n-1)
+    return m, m-h, m+h
+
+def compareTanaka(data,fname):
     """
     Compares the plasticity induced changes in GLuA1 in synaptics and extrasynaptic compartments
     in model (namely, P_spine and P_s) and takes an average across the complete model dendrite
@@ -282,62 +222,79 @@ def compareTanaka():
     tps = (timepoints - 30) / 60
     # model_dend = (data[labels[1]][loc, :] / data[labels[1]][loc, 0])
     # model_psd = (data[labels[2]][loc, :] / data[labels[2]][loc, 0])
-    model_dend = np.divide(data[labels[1]].T, data[labels[1]][:, 0]).mean(axis=1)
-    model_psd = np.divide(data[labels[2]].T, data[labels[2]][:, 0]).mean(axis=1)
-    ax.plot(tps, 100 * model_psd, color=COLORS_dict["spine_s"], label=r"model:$P_{spine}$")
-    ax.plot(tps, 100 * model_dend, color=COLORS_dict["shaft_s"], label=r"model:$P_s$")
+    model_dend, model_dend_cim,model_dend_cip = mean_confidence_interval(np.divide(data[labels[1]].T, data[labels[1]][:, 0]))
+    model_psd,model_psd_cim,model_psd_cip = mean_confidence_interval(np.divide(data[labels[2]].T, data[labels[2]][:, 0]))
 
-    ax.errorbar(tanaka_dend[:, 0], tanaka_dend[:, 1], tanaka_dend[:, 2], color="k", marker='^', linestyle='',
-                 label="data:N-PSLM",markersize=12,capsize=3,zorder=10)
-    ax.errorbar(tanaka_psd[:, 0], tanaka_psd[:, 1], tanaka_psd[:, 2], color="#ff5008", marker='o', linestyle='',
-                label="data:PSLM", markersize=12, capsize=3,zorder=10)
+    ax.errorbar(tanaka_dend[:, 0], tanaka_dend[:, 1], tanaka_dend[:, 2], color="#6382f6fa", marker='^', linestyle='',
+                 label="GluA1 in Extra syn.",markersize=20,linewidth=3,capsize=6,zorder=10)
+    ax.errorbar(tanaka_psd[:, 0], tanaka_psd[:, 1], tanaka_psd[:, 2], color="#0135f8ff", marker='o', linestyle='',
+                label="GluA1 in PSD", markersize=20,linewidth=3, capsize=6,zorder=10,)
+
+    ax.plot(tps, 100 * model_psd, color="#0135f8ff", label=r"$P_{PSD}$: GluA1",linewidth=4)
+    # ax.fill_between(tps, 100*model_dend_cim, 100*model_dend_cip,color=COLORS_dict["spine_s"], alpha=.3)
+    ax.plot(tps, 100 * model_dend, color="#6382f6fa", label=r"$P_s$: GluA1",linewidth=4)
+    # ax.fill_between(tps, 100 * model_psd_cim, 100 * model_psd_cip, color=COLORS_dict["shaft_s"], alpha=.3)
+    # breakpoint()
     ax.hlines(y=100,xmin=-10,xmax=tps[-1],linestyles="dotted",color='k')
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
-    ax.hlines(y=91, xmin=0, xmax=10, linewidth=2, color='r')
-    ax.text(x=0, y=93.0,s="Gly stim.",fontsize=f_size)#, transform=ax.transAxes)
+    # ax.axvspan(0, 10, alpha=0.5, color='gray')
+    # ax.hlines(y=91, xmin=0, xmax=10, linewidth=2, color='r')
+    # ax.text(x=0, y=93.0,s="Gly stim.",fontsize=f_size)#, transform=ax.transAxes)
     ax.set_xlabel("Time (min)",fontsize=f_size)
-    ax.set_ylabel(r"$\%\Delta$ in fluorescence  ",fontsize=f_size)
+    ax.set_ylabel(r"$\%\Delta$ in GluA1 fluorescence  ",fontsize=f_size)
+    ax.set_xticks(np.arange(-10,61,10))
     ax.set_ylim([90,150])
+    ax.set_yticks(np.arange(90,151,10))
     ax.set_xlim([-12, 65])
     ax.tick_params(axis='both', which='major', labelsize=f_size)
-    plt.legend(frameon=False,fontsize=f_size,loc="upper right")
+    plt.legend(frameon=False,fontsize=f_size,loc="upper right",labelcolor='linecolor')
     plt.tight_layout()
-    SaveFigures("{}/Tanaka_2012_fit_{}".format(op_folder, date_time))
+    SaveFigures(fname)
     plt.show()
 
-def compareClavet_Fournier(s_start,s_end):
+def compareClavet_Fournier(data,fname,init_time=30):
     fig, ax = plt.subplots(figsize=(8, 6), nrows=1, ncols=1)
-    tps = (timepoints - 30) / 60
+    tps = (timepoints - init_time) / 60
     model_dend = np.divide(data[labels[1]].T, data[labels[1]][:, 0]).mean(axis=1)
     model_psd = np.divide(data[labels[2]].T, data[labels[2]][:, 0]).mean(axis=1)
     # breakpoint()
-    ax.plot(tps, 100*model_psd, color=COLORS_dict["spine_s"], label=r"model:$P_{spine}$")
-    ax.plot(tps, 100*model_dend, color=COLORS_dict["shaft_s"], label=r"model:$P_s$")
+    ax.plot(tps, 100*model_psd, color="#017a56ff", label=r"$P_{PSD}$: GluA2")
+    ax.plot(tps, 100*model_dend, color="#63bf1eff", label=r"$P_{s}: GluA2$")
     COI = "GluA2_Area"
     cLTP_means = CF_cLTP_psd.groupby('timepoint')[[COI]].mean().to_numpy()
-    cLTP_means /= cLTP_means[0]
     cLTP_stds = CF_cLTP_psd.groupby('timepoint')[[COI]].std().to_numpy()
-    cLTP_counts = CF_cLTP_psd.groupby('timepoint')[[COI]].count().to_numpy()
-    cLTP_sems = cLTP_stds/cLTP_counts
+    # cLTP_counts = CF_cLTP_psd.groupby('timepoint')[[COI]].count().to_numpy()
 
     cont_means = CF_control_psd.groupby('timepoint')[[COI]].mean().to_numpy()
     # breakpoint()
+    cLTP_means /= cont_means
+    cLTP_means /= cLTP_means[0]
     cont_means /= cont_means[0]
-    cont_stds = CF_control_psd.groupby('timepoint')[[COI]].std().to_numpy()
-    cont_counts = CF_control_psd.groupby('timepoint')[[COI]].count().to_numpy()
-    cont_sems = cont_stds / cont_counts
+    # cont_stds = CF_control_psd.groupby('timepoint')[[COI]].std().to_numpy()
+    # cont_counts = CF_control_psd.groupby('timepoint')[[COI]].count().to_numpy()
     # breakpoint()
-    ax.errorbar(CF_time_points,100*cLTP_means[:,0],100*cLTP_stds[:,0], color="#ff5008", marker='o', linestyle='',
-                label="{}: cLTP".format(COI),markersize=12,capsize=3,zorder=10)
+    ax.errorbar(CF_time_points,100*cLTP_means[:,0],100*cLTP_stds[:,0], color="#017a56ff", marker='o', linestyle='',
+                label="GluA2 in PSD",markersize=20,linewidth=3, capsize=6,zorder=10)
     # ax.errorbar(CF_time_points, cont_means[:, 0], cont_stds[:, 0], color="k", marker='^', linestyle='',
     #             label="{}: Cont".format(COI), markersize=12, capsize=3, zorder=10)
-    ax.hlines(y=73, xmin=s_start / 60, xmax=s_end / 60, linewidth=5, color='r')
-    ax.text(x=s_start, y=76, s=r"$\uparrow$ CNIH2 synthesis", fontsize=f_size)
-    ax.set_ylim([70,300])
+    ax.hlines(y=100,xmin=-10,xmax=tps[-1],linestyles="dotted",color='k')
+    # ax.hlines(y=85, xmin=l_start / 60, xmax=l_end / 60, linewidth=5, color='k')
+    # ax.text(x=l_start/60, y=90, s=r"$\uparrow$ "+mesg, fontsize=f_size)
+    # ax.hlines(y=75, xmin=s_start/60, xmax=s_end/60, linewidth=5, color='r')
+    # ax.text(x=0, y=72.0,s="Gly stim.",fontsize=f_size)
+    # ax.axvspan(l_start/60, l_end/60, alpha=0.5, color='gray')
+    ax.set_ylim([70,200])
+    ax.set_xticks(np.arange(0,tps[-1]+1,60))
+    ax.hlines(y=100, xmin=tps[0], xmax=tps[-1], linestyles="dotted", color='k')
     plt.legend(frameon=False,fontsize=f_size,loc="upper right")
+    ax.set_xlabel("Time (min)", fontsize=f_size)
+    ax.set_ylabel(r"$\%\Delta$ in GluA2 fluorescence  ", fontsize=f_size)
+    ax.tick_params(axis='both', which='major', labelsize=f_size)
     plt.tight_layout()
-    SaveFigures("{}/Clavet_Fournier_2023_fit_{}".format(op_folder, date_time))
+
+    # print("op folder = ",op_folder)
+    SaveFigures(fname)
     plt.show()
 def Plot3DMatrixIndividual(dat,locn,off_set,step,stim_start,stim_end,title,lab,c_map,ax_label=0):
     min_y = locn - off_set
@@ -416,31 +373,61 @@ def HeterosynapticAvgTemporal(data_to_plot,timepoints,stim_loc=[],unstim_loc=[])
     ax.legend(loc="upper right", frameon=False, fontsize=f_size)
     plt.tight_layout()
     plt.show()
-s_start = 0
-s_end = 10*60
-compareTanaka()
-# plotStimuLocation(data,timepoints,[int(locn/dx)],s_start,s_end)
-# compareClavet_Fournier(s_start,s_end)
-# breakpoint()
-# plotStimuLocation(aligned_sum,aligend_timepoints,[int(locn/dx)],s_start,s_end,"u")
-# stim_locations = [250,251,252,253,255,256]
-# for loc in stim_locations:
-#     plotStimuLocation(data,timepoints,[int((loc)/dx)],s_start,s_end)
-# unstim_locations = [254]
-# for loc in unstim_locations:
-#     plotStimuLocation(data,timepoints,[int((loc)/dx)],s_start,s_end,"u")
-# HeterosynapticAvgTemporal(data,timepoints,stim_locations,unstim_locations)
 
-plotStimuLocation()
-# plotStimuLocation([int((locn-3)/dx)])
-# plotStimuLocation([int(46/dx)])
-# plotStimuLocation([int(58/dx)])
-# comparePatterson([int(locn/dx)])
-# breakpoint()
-# compareTanaka()
-# Plot3DMatrix(locn,50,1,0,60*60*2)
-# Plot3DMatrix(locn,50,1,0,60*60*2)
-# Plot3DMatrixIndividual(data[labels[0]],locn,250,1,s_start,s_end,r"$P_c$","Pc","summer")
-# Plot3DMatrixIndividual(data[labels[1]],locn,250,1,s_start,s_end,r"$P_s$","Ps","RdPu")
-# Plot3DMatrixIndividual(data[labels[2]],locn,250,1,s_start,s_end,r"$P_{spine}$","p_spine","YlGn")
-# def animateflux()
+per = "100"
+labels = ["PC", "PS", "PSPINE"]
+
+if __name__ == '__main__':
+    """
+        parsing argumenst on mRNA and widths to be analysed. Each length is analysed seperately. mRNAs can be analysed in combinations
+    """
+    parser = argparse.ArgumentParser(description='mRNA analysis.py file ')
+    parser.add_argument('-d', "--date_time", type=str, default="11_08_2024_16_18_55",
+                        help='name of the folder to read data from')
+    parser.add_argument('-s', "--subunit", type=str, default="GluA2",
+                        help='name of the GluA subunit, GluA1 or GluA2')
+
+    # reading the argumenst
+    args = parser.parse_args()
+    date_time = args.date_time
+    subunit  = args.subunit
+    # s_start = 0
+    # s_end = 10*60
+    # l_start = 0
+    # l_end = 10*60
+
+    root_folder = "./Time-dependent/GluAsims/GluA_simulations"
+    file_names = ["{}_{}_{}_percent.npy".format(i, date_time, per) for i in
+                  labels]  # ["PC_{}_{}_percent.npy".format(date_time,per),"PS_{}_{}_percent.npy".format(date_time, per),"PSPINE_{}_{}_percent.npy".format(date_time,per)]
+    data = {}
+    if subunit == "GluA2":
+        input_folder = "{}/GluA2/CNIH2_dep/{}/".format(root_folder, date_time)
+    else:
+        input_folder = "{}/GluA1/{}/".format(root_folder, date_time)
+
+    op_folder = os.path.join(input_folder + "figures_{}".format(date_time))
+    os.makedirs(op_folder, exist_ok=True)
+
+    for idx, fname in enumerate(file_names):
+        print(labels[idx])
+        data[labels[idx]] = np.load(input_folder + fname)
+    timepoints = np.load(input_folder + "timepoints_{0}_{1}_percent.npy".format(date_time, per))
+    dpi = 300
+    interval = 500
+    # locn = 50
+    # beta_span = 3
+    # alpha_span = 10
+    # fps = 25
+    f_size = 26
+    P_s_init, P_c_init, P_spine_init, SP_model1 = RunModelWithFile(baseline_param_file)
+    # L = 500.0
+    dx = SP_model1.dx
+    x_grid = SP_model1.x_grid  # np.arange(0,SP_model1L,dx)
+    x_points = x_grid.shape[0]
+    num_frames = int((0.25 * 60) / dt)
+    f_rames = [i for i in range(0, len(timepoints), num_frames)]
+
+    if subunit == "GluA1":
+        compareTanaka(data,"{}/Tanaka_2012_fit_{}".format(op_folder, date_time))
+    else:
+        compareClavet_Fournier(data,"{}/Clavet_Fournier_2023_fit_{}".format(op_folder, date_time))

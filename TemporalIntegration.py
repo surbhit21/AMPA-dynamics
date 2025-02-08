@@ -195,7 +195,7 @@ def savesimsettings(num_steps,type, time_steps, protocol_file,
                     dc_factors=[],ds_factors=[],vp_factors=[],
                     alpha_factors=[],beta_factors=[],
                     eta_factors=[],gamma_factors=[],
-                    locations =[],unstim_locations = []):
+                    locations =[],unstim_locations = [],cnih2_file = ""):
     # assert num_steps == len(time_steps) - 1
     # assert num_steps == len(factors) - 1
     protocol_details = {}
@@ -214,7 +214,7 @@ def savesimsettings(num_steps,type, time_steps, protocol_file,
     protocol_details["alpha_factors"] = alpha_factors
     protocol_details["eta_factors"] = eta_factors
     protocol_details["gamma_factors"] = gamma_factors
-
+    protocol_details["CNIH2_file"] = cnih2_file
     with open (protocol_file, 'a') as fp:
         json.dump(protocol_details,fp)
     fp.close()

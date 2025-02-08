@@ -5,11 +5,12 @@ import matplotlib
 from Utility import _2gaussian, _1gaussian
 
 matplotlib.use("Qt5Agg")
-import pandas as pd
-from scipy.stats import ks_2samp, kruskal,spearmanr,pearsonr,ttest_rel,ttest_ind
+# import pandas as pd
+import pickle
+from scipy.stats import spearmanr,pearsonr
 import seaborn as sns
 from SNSPlottingWidget import SNSPlottingWidget
-from statannotations.Annotator import Annotator
+# from statannotations.Annotator import Annotator
 from Utility import *
 # from SpineEnrichment_fitting import FitModel
 scale = 61.57/2048
@@ -17,7 +18,8 @@ scale = 61.57/2048
 
 my_pal1 = {"spine":COLORS_dict["soma"],"shaft":COLORS_dict["shaft"]}
 my_pal2 = {"int": COLORS_dict["spine_i"],"int_getz": COLORS_dict["shaft_i"],"surf": COLORS_dict["spine_s"],"surf_getz": COLORS_dict["shaft_s"]}
-my_pal3 = {"int": COLORS_dict["shaft_i"],"surf": COLORS_dict["shaft_s"]}
+my_pal3 = {"intra": COLORS_dict["shaft_i"],"surface": COLORS_dict["shaft_s"]}
+my_pal5 = {"intra": "k","surface": "k","spine":"k","shaft":"k"}
 my_pal4 = {"Helm et al. 2021": COLORS_dict["spine_s"],"Getz et al. 2022": COLORS_dict["spine_i"]}
 
 
@@ -41,9 +43,39 @@ def CorrelationCalculationAndPlotting(data_to_show,localization,compartment,x_pa
     print("Correlation between {} , {} in {} {} = ".format(x_param,y_param,compartment[1],localization),corr3)
     print("Correlation between {} , {} in {} {} = ".format(x_param,y_bg_param,compartment[1],localization),corr4)
 
+
+def DumpDict(fname,datadict):
+    with open(fname,'wb') as outfile:
+        pickle.dump(datadict,outfile, protocol=pickle.HIGHEST_PROTOCOL)
+    print("{} saved!".format(fname))
+
+def ReadDataDict(fname):
+    with open(fname,'rb') as infile:
+        d = pickle.load(infile)
+    print("{} loaded!".format(fname))
+    return d
+
+def ReadData():
+    # dend_cell_sum = {}
+    curr_wd = os.getcwd()
+    print(curr_wd)
+    return [
+        ReadDataDict(os.path.join(curr_wd,"Protein_data/Spine/int_df.pickle")),
+        ReadDataDict(os.path.join(curr_wd, "Protein_data/Spine/surf_df.pickle")),
+        ReadDataDict(os.path.join(curr_wd,"Protein_data/Spine/gfp_df.pickle")),
+        ReadDataDict(os.path.join(curr_wd, "Protein_data/Spine/int_dend_data.pickle")),
+        ReadDataDict(os.path.join(curr_wd, "Protein_data/Spine/surf_dend_data.pickle")),
+        ReadDataDict(os.path.join(curr_wd, "Protein_data/Spine/gfp_dend_data.pickle")),
+        ReadDataDict(os.path.join(curr_wd, "Protein_data/Spine/int_spine_line_data.pickle")),
+        ReadDataDict(os.path.join(curr_wd, "Protein_data/Spine/surf_spine_line_data.pickle")),
+        ReadDataDict(os.path.join(curr_wd, "Protein_data/Spine/gfp_spine_line_data.pickle"))
+    ]
+
+
+
 subunit = "GluA2"
 p_type="SUM"
-stat_test = "Kruskal"
+stat_test = "Mann-Whitney"
 condition = "control" # or "
 # TTX" or "Untreated"
     # {}
@@ -51,9 +83,8 @@ condition = "control" # or "
 G2std = GluA2StoD(spine_cell_folder[subunit][condition],p_type,spine_channel_names[subunit])
 int_df,surf_df,gfp_df,\
 int_dend_data,surf_dend_data,gfp_dend_data,\
-int_spine_line_data,surf_spine_line_data,gfp_spine_line_data = G2std.LoadData(
-    spine_num_cells[subunit][condition],
-    spine_exclude_cells[subunit][condition])
+int_spine_line_data,surf_spine_line_data,gfp_spine_line_data = ReadData()
+
 concat_data = pd.concat([int_df.assign(dataset='internal'),surf_df.assign(dataset='surface')])
 # print(concat_data.shape)
 # breakpoint()
@@ -63,11 +94,11 @@ concat_data = pd.concat([int_df.assign(dataset='internal'),surf_df.assign(datase
 # surf_df#[surf_df.index == "cell_9_sp_10"]
 # breakpoint()
 plt_widget = SNSPlottingWidget()
-op_folder = "/Users/surbhitwagle/Desktop/Surbhit/Work/PhD/2020/PhD/MPIBR/PhD-Project/Experimental_collab/Max-Kracht/{}/Figures/Spine_to_dend/".format(subunit)
+op_folder = "./{}/Figures/Spine_to_dend/".format(subunit)
 plt_widget.CreateFolderRecursive(op_folder)
 print(pd. __version__)
 ax_label = 1 #plot axis labels or not (=1 for yes)
-fsize = 28
+fsize = 30
 save_it = 1
 w_or_wo_ax_label = ["", "_with_ax_label"] #for chaning the filename suffix
 
@@ -225,22 +256,24 @@ plt.show()
 def GetSEvals(stat,s_df,i_df,norm_by_area):
     ratio_SE = pd.DataFrame()
     if norm_by_area == True:
-        ratio_SE["surf"] = ((s_df['sp_{}'.format(stat)] - s_df['sp_bg_{}'.format(stat)]) / s_df["sp_area"]) / (
+        ratio_SE["surface"] = ((s_df['sp_{}'.format(stat)] - s_df['sp_bg_{}'.format(stat)]) / s_df["sp_area"]) / (
                 (s_df['dend_{}'.format(stat)] - s_df['dend_bg_{}'.format(stat)]) / s_df["dend_area"])
-        ratio_SE["int"] = ((i_df['sp_{}'.format(stat)] - i_df['sp_bg_{}'.format(stat)]) / s_df["sp_area"]) / (
+        ratio_SE["intra"] = ((i_df['sp_{}'.format(stat)] - i_df['sp_bg_{}'.format(stat)]) / s_df["sp_area"]) / (
                 (i_df['dend_{}'.format(stat)] - i_df['dend_bg_{}'.format(stat)]) / s_df["dend_area"])
     else:
-        ratio_SE["surf"] = ((s_df['sp_{}'.format(stat)] - s_df['sp_bg_{}'.format(stat)])) / (
+        ratio_SE["surface"] = ((s_df['sp_{}'.format(stat)] - s_df['sp_bg_{}'.format(stat)])) / (
             (s_df['dend_{}'.format(stat)] - s_df['dend_bg_{}'.format(stat)]))
-        ratio_SE["int"] = ((i_df['sp_{}'.format(stat)] - i_df['sp_bg_{}'.format(stat)])) / (
+        ratio_SE["intra"] = ((i_df['sp_{}'.format(stat)] - i_df['sp_bg_{}'.format(stat)])) / (
             (i_df['dend_{}'.format(stat)] - i_df['dend_bg_{}'.format(stat)]))
     ratio_SE["id"] = s_df.index
     return ratio_SE
 
 def calculateSE(stat,s_df,i_df,x,y,pairs,labs,order,hue_order,fname,x_pos = [0,1],norm_by_area = True):
     ratio_SE = GetSEvals(stat,s_df,i_df,norm_by_area)
-    y_pos = ratio_SE[["surf", "int"]].to_numpy()
+    y_pos = ratio_SE[["surface", "intra"]].to_numpy()
     ratio_SE_melted = ratio_SE.melt(id_vars=["id"], var_name="localization", value_name="SE")
+    ylims = [0,1.1*y_pos.max()]
+    y_tics = np.arange(ylims[0],ylims[1],1)
     plt_widget.SwarmboxLineplotcombo(data=ratio_SE_melted,
                                      x=x,
                                      y=y,
@@ -252,7 +285,7 @@ def calculateSE(stat,s_df,i_df,x,y,pairs,labs,order,hue_order,fname,x_pos = [0,1
                                      title="",
                                      order=order,
                                      hue_order=hue_order,
-                                     color_pal=my_pal3,
+                                     color_pal=my_pal5,
                                      stat_test=stat_test,
                                      xfsize=fsize,
                                      yfsize=fsize,
@@ -261,6 +294,8 @@ def calculateSE(stat,s_df,i_df,x,y,pairs,labs,order,hue_order,fname,x_pos = [0,1
                                      ax_lab=ax_label,
                                      x_pos=x_pos,
                                      line_y_data=y_pos,
+                                     y_lims=ylims,
+                                     y_tics=y_tics
                                      )
 ## spine to dendrite ratio using the method from Helm et al. 2021
 # """
@@ -270,9 +305,9 @@ plotting parameters are set
 """
 x="localization"
 y = "SE"
-pairs = [("surf","int")]
+pairs = [("surface","intra")]
 labs = ["Spine","Shaft"]
-order = ["surf","int"]
+order = ["surface","intra"]
 hue = order
 hue_order = order
 # breakpoint()
@@ -283,13 +318,13 @@ x_pos = [0,1]
 """
 SE based on intdent, rawinteden and mean  
 """
-stat = "intden"
-fig_file = os.path.join(op_folder,"spine_to_dend_{0}_ratio_{1}".format(stat,w_or_wo_ax_label[ax_label]))
-calculateSE(stat,surf_df,int_df,x,y,pairs,labs,order,hue_order,fig_file,norm_by_area=False)
-
-stat = "rawintden"
-fig_file = os.path.join(op_folder,"spine_to_dend_{0}_ratio_{1}".format(stat,w_or_wo_ax_label[ax_label]))
-calculateSE(stat,surf_df,int_df,x,y,pairs,labs,order,hue_order,fig_file,norm_by_area=False)
+# stat = "intden"
+# fig_file = os.path.join(op_folder,"spine_to_dend_{0}_ratio_{1}".format(stat,w_or_wo_ax_label[ax_label]))
+# calculateSE(stat,surf_df,int_df,x,y,pairs,labs,order,hue_order,fig_file,norm_by_area=False)
+#
+# stat = "rawintden"
+# fig_file = os.path.join(op_folder,"spine_to_dend_{0}_ratio_{1}".format(stat,w_or_wo_ax_label[ax_label]))
+# calculateSE(stat,surf_df,int_df,x,y,pairs,labs,order,hue_order,fig_file,norm_by_area=False)
 
 stat = "mean"
 fig_file = os.path.join(op_folder,"spine_to_dend_{0}_ratio_{1}".format(stat,w_or_wo_ax_label[ax_label]))
@@ -300,24 +335,24 @@ calculateSE(stat,surf_df,int_df,x,y,pairs,labs,order,hue_order,fig_file,norm_by_
 plotting cummulative histogram of SE values
 """
 
-stat = "intden"
-ratio_SE = GetSEvals(stat,surf_df,int_df,norm_by_area=True)
-ratio_SE_melted = ratio_SE.melt(id_vars=["id"],var_name="localization",value_name="SE")
-fig,ax1 = plt.subplots()
-hp1 = sns.histplot(ratio_SE_melted,
-             x=y,
-             hue=x,
-             hue_order = ["surf","int"],
-             bins=10,
-             cumulative=cumm,
-             alpha=alpha,
-             element=element,
-             stat=stat_to_plot,
-             common_norm=False,
-             fill=fill,
-             legend=legend,
-             color=COLORS_dict["spine"],
-             ax=ax1).set(label="S-{}".format(subunit))#set()
+# stat = "intden"
+# ratio_SE = GetSEvals(stat,surf_df,int_df,norm_by_area=True)
+# ratio_SE_melted = ratio_SE.melt(id_vars=["id"],var_name="localization",value_name="SE")
+# fig,ax1 = plt.subplots()
+# hp1 = sns.histplot(ratio_SE_melted,
+#              x=y,
+#              hue=x,
+#              hue_order = ["surf","int"],
+#              bins=10,
+#              cumulative=cumm,
+#              alpha=alpha,
+#              element=element,
+#              stat=stat_to_plot,
+#              common_norm=False,
+#              fill=fill,
+#              legend=legend,
+#              color=COLORS_dict["spine"],
+#              ax=ax1).set(label="S-{}".format(subunit))#set()
 # hp2 = sns.histplot(ratio_SE["int"],
 #              bins=10,
 #              cumulative=True,
@@ -329,23 +364,23 @@ hp1 = sns.histplot(ratio_SE_melted,
 #              legend=legend,
 #              color=COLORS_dict["spine_i"],
 #              ax=ax1).set(label="I-{}".format(subunit))#set(ylabel="Cummulative frequency",xlabel="Synaptic enrichment")
-if ax_label==1:
-    ax1.set_xlabel("Synaptic enrichment", fontsize=fsize)
-    ax1.set_ylabel(ylabel="Cummulative frequency", fontsize=fsize)
-    ax1.set_title( "Synaptic enrichment histogram")
-    legend = ax1.get_legend()
-    handles = legend.legendHandles
-    legend.remove()
-    ax1.legend(handles, ["S-{}".format(subunit), "i-{}".format(subunit)], title='',frameon=False,fontsize=fsize)
-# ax1.legend()
-ax1.set_ylim([0,1.1])
-ax1.tick_params(axis='both', which='major', labelsize=fsize)
-ax1.grid(False)
-ax1.spines['right'].set_visible(False)
-ax1.spines['top'].set_visible(False)
-# ax1.legend()
-plt_widget.SaveFigures(os.path.join(op_folder,"synaptic_enrichment_histogram_{0}".format(w_or_wo_ax_label[ax_label])))
-plt.show()
+# if ax_label==1:
+#     ax1.set_xlabel("Synaptic enrichment", fontsize=fsize)
+#     ax1.set_ylabel(ylabel="Cummulative frequency", fontsize=fsize)
+#     ax1.set_title( "Synaptic enrichment histogram")
+#     legend = ax1.get_legend()
+#     handles = legend.legendHandles
+#     legend.remove()
+#     ax1.legend(handles, ["S-{}".format(subunit), "i-{}".format(subunit)], title='',frameon=False,fontsize=fsize)
+# # ax1.legend()
+# ax1.set_ylim([0,1.1])
+# ax1.tick_params(axis='both', which='major', labelsize=fsize)
+# ax1.grid(False)
+# ax1.spines['right'].set_visible(False)
+# ax1.spines['top'].set_visible(False)
+# # ax1.legend()
+# plt_widget.SaveFigures(os.path.join(op_folder,"synaptic_enrichment_histogram_{0}".format(w_or_wo_ax_label[ax_label])))
+# plt.show()
 
 
 # adding another column named binned with bin number
@@ -383,15 +418,15 @@ y_tics = [str(int(10*i)) for i in labels]
 # sns.swarmplot(data=s2s_r_dist,y="int",x="binned",ax=ax[1]).set(xlabel=r"Dendritic distance ($\mu m$)",ylabel=r"ratio $\frac{spine}{shaft}$")
 # sns.swarmplot(data=mean_s2s_r_dist,y="surf",x="binned",ax=ax[0]).set(xlabel=r"Dendritic distance ($\mu m$)",ylabel=r"ratio $\frac{spine}{shaft}$")
 # sns.swarmplot(data=mean_s2s_r_dist,y="int",x="binned",ax=ax[1]).set(xlabel=r"Dendritic distance ($\mu m$)",ylabel=r"ratio $\frac{spine}{shaft}$")
-sns.regplot(data=s2s_r_dist,y="surf",x="DFO",ax=ax5,scatter_kws={"color":my_pal3["surf"],"alpha" : 0.5},line_kws={"color": my_pal3["surf"],"alpha":1.0}).set(xlabel="",ylabel="")
-# sns.regplot(data=s2s_r_dist,y="int",x="DFO",ax=ax5[1], scatter_kws={"color":my_pal3["int"],"alpha" : 1.0},line_kws={"color": my_pal3["int"]}).set(ylabel="",xlabel="")#.set(xlabel=r"Dendritic distance ($\mu m$)",ylabel=r"ratio $\frac{spine}{shaft}$")
+sns.regplot(data=s2s_r_dist,y="surface",x="DFO",ax=ax5,scatter_kws={"color":my_pal3["surface"],"alpha" : 0.5},line_kws={"color": my_pal3["surface"],"alpha":1.0}).set(xlabel="",ylabel="")
+# sns.regplot(data=s2s_r_dist,y="int",x="DFO",ax=ax5[1], scatter_kws={"color":my_pal3["intra"],"alpha" : 1.0},line_kws={"color": my_pal3["intra"]}).set(ylabel="",xlabel="")#.set(xlabel=r"Dendritic distance ($\mu m$)",ylabel=r"ratio $\frac{spine}{shaft}$")
 if ax_label==1:
    ax5.set_xlabel(r"Dendritic distance ($\mu m$)",fontsize=fsize)
    ax5.set_ylabel(r"Synaptic enrichment",fontsize=fsize)
-pea_ror_s = spearmanr(s2s_r_dist["surf"],s2s_r_dist["DFO"])
-pea_ror_i = spearmanr(s2s_r_dist["int"],s2s_r_dist["DFO"])
+pea_ror_s = spearmanr(s2s_r_dist["surface"],s2s_r_dist["DFO"])
+pea_ror_i = spearmanr(s2s_r_dist["intra"],s2s_r_dist["DFO"])
 # print(pea_ror)
-ax5.text(.05, .8, 'r={:.2f}, p={:.2g}'.format(pea_ror_s[0],pea_ror_s[1]),color=my_pal3["surf"],fontsize=28,transform=ax5.transAxes)
+ax5.text(.05, .8, 'r={:.2f}, p={:.2g}'.format(pea_ror_s[0],pea_ror_s[1]),color=my_pal3["surface"],fontsize=28,transform=ax5.transAxes)
 ax5.set_xlim([0,60])
 # ax5[1].text(.05, .8, 'r={:.2f}, p={:.2g}'.format(pea_ror_i[0],pea_ror_i[1]),transform=ax5[1].transAxes)
 
@@ -446,8 +481,8 @@ int_df_corrected["shaft"] = ((int_df['dend_{}'.format(stat)] - int_df['dend_bg_{
 int_df_corrected["binned"] = int_df["binned"]
 int_df_corrected["DFO"] = int_df["DFO"]
 y_tics = [str(int(10*i)) for i in labels]
-sns.regplot(data=surf_df_corrected,y="spine",x="DFO",ax=ax6[0],marker = "o",label="S-spine",scatter_kws={"color": my_pal3["surf"],"alpha" : 0.5},line_kws={"color": my_pal3["surf"],'alpha':1.0})
-sns.regplot(data=surf_df_corrected,y="shaft",x="DFO",ax=ax6[0],marker = "v",label="S-shaft", scatter_kws={"color":my_pal3["int"],"alpha" : 0.5},line_kws={"color": my_pal3["int"],'alpha':1})
+sns.regplot(data=surf_df_corrected,y="spine",x="DFO",ax=ax6[0],marker = "o",label="S-spine",scatter_kws={"color": my_pal3["surface"],"alpha" : 0.5},line_kws={"color": my_pal3["surface"],'alpha':1.0})
+sns.regplot(data=surf_df_corrected,y="shaft",x="DFO",ax=ax6[0],marker = "v",label="S-shaft", scatter_kws={"color":my_pal3["intra"],"alpha" : 0.5},line_kws={"color": my_pal3["intra"],'alpha':1})
 # sns.regplot(data=int_df_corrected,y="spine",x="DFO",ax=ax6[1],label="I-spine",scatter_kws={"color":my_pal2["surf"],"alpha" : 1.0},line_kws={"color": my_pal2["surf"]})
 # sns.regplot(data=int_df_corrected,y="shaft",x="DFO",ax=ax6[1],label="I-shaft", scatter_kws={"color":my_pal2["int"],"alpha" : 1.0},line_kws={"color": my_pal2["int"]})
 # ax6[0].legend(title='localization', loc='upper right', labels=['spine',None,None, 'shaft'])
@@ -456,8 +491,8 @@ sns.regplot(data=surf_df_corrected,y="shaft",x="DFO",ax=ax6[0],marker = "v",labe
 pea_ror_s = spearmanr(surf_df_corrected["spine"],s2s_r_dist["DFO"])
 pea_ror_i = spearmanr(surf_df_corrected["shaft"],s2s_r_dist["DFO"])
 
-ax6[0].text(.05, .8, 'r={:.2f},\np={:.2g}'.format(pea_ror_s[0],pea_ror_s[1]),color=my_pal3["surf"],fontsize=28,transform=ax6[0].transAxes)
-ax6[0].text(.05, .8, 'r={:.2f},\np={:.2g}'.format(pea_ror_i[0],pea_ror_i[1]),color=my_pal3["int"],fontsize=28,transform=ax6[0].transAxes)
+ax6[0].text(.05, .8, 'r={:.2f},\np={:.2g}'.format(pea_ror_s[0],pea_ror_s[1]),color=my_pal3["surface"],fontsize=28,transform=ax6[0].transAxes)
+ax6[0].text(.05, .8, 'r={:.2f},\np={:.2g}'.format(pea_ror_i[0],pea_ror_i[1]),color=my_pal3["intra"],fontsize=28,transform=ax6[0].transAxes)
 # ax6[0].set_xlim([0,60])
 print(pea_ror_s,pea_ror_i)
 titles = ["Surface","Internal"]
@@ -486,10 +521,10 @@ sp_area_dist["dend area"] = surf_df['dend_area']
 sp_area_dist["binned"] = surf_df["binned"]
 sp_area_dist["DFO"] = surf_df["DFO"]
 y_tics = [str(int(10*i)) for i in labels]
-sns.regplot(data=sp_area_dist,y="area",x="DFO",ax=ax6,scatter_kws={"color":my_pal3["surf"],"alpha" : 0.5},line_kws={"color": my_pal3["surf"],"alpha":1.})
-# sns.regplot(data=sp_area_dist,y="dend area",x="DFO",ax=ax6,scatter_kws={"color":my_pal3["int"],"alpha" : 0.5},line_kws={"color": my_pal3["int"],"alpha":1.})
+sns.regplot(data=sp_area_dist,y="area",x="DFO",ax=ax6,scatter_kws={"color":my_pal3["surface"],"alpha" : 0.5},line_kws={"color": my_pal3["surface"],"alpha":1.})
+# sns.regplot(data=sp_area_dist,y="dend area",x="DFO",ax=ax6,scatter_kws={"color":my_pal3["intra"],"alpha" : 0.5},line_kws={"color": my_pal3["intra"],"alpha":1.})
 
-# sns.regplot(data=sp_area_dist,y="dend area",x="DFO",ax=ax6[1],scatter_kws={"color":my_pal3["int"],"alpha" : 1.0},line_kws={"color": my_pal3["int"]})#.set(xlabel=r"Dendritic distance ($\mu m$)",ylabel=r"ratio $\frac{spine}{shaft}$")
+# sns.regplot(data=sp_area_dist,y="dend area",x="DFO",ax=ax6[1],scatter_kws={"color":my_pal3["intra"],"alpha" : 1.0},line_kws={"color": my_pal3["intra"]})#.set(xlabel=r"Dendritic distance ($\mu m$)",ylabel=r"ratio $\frac{spine}{shaft}$")
 pea_area_s = spearmanr(sp_area_dist["area"],sp_area_dist["DFO"])
 # pea_area_d = spearmanr(sp_area_dist["dend area"],sp_area_dist["DFO"])
 # pea_area_d = spearmanr(sp_area_dist["dend area"],sp_area_dist["DFO"])
@@ -535,8 +570,8 @@ plt.show()
 ratio_s_i = pd.DataFrame()
 stat = "mean"
 # breakpoint()
-ratio_s_i["Spine"]  = ((surf_df['sp_{}'.format(stat)]-surf_df['sp_bg_{}'.format(stat)]))/((int_df['sp_{}'.format(stat)] - int_df['sp_bg_{}'.format(stat)]))
-ratio_s_i["Shaft"] = ((surf_df['dend_{}'.format(stat)]-surf_df['dend_bg_{}'.format(stat)]))/((int_df['dend_{}'.format(stat)] - int_df['dend_bg_{}'.format(stat)]))
+ratio_s_i["spine"]  = ((surf_df['sp_{}'.format(stat)]-surf_df['sp_bg_{}'.format(stat)]))/((int_df['sp_{}'.format(stat)] - int_df['sp_bg_{}'.format(stat)]))
+ratio_s_i["shaft"] = ((surf_df['dend_{}'.format(stat)]-surf_df['dend_bg_{}'.format(stat)]))/((int_df['dend_{}'.format(stat)] - int_df['dend_bg_{}'.format(stat)]))
 ratio_s_i["id"] = surf_df.index
 fig_file = os.path.join(op_folder,"surf_to_int_{0}_in_spine_vs_shaft_{1}".format(stat,w_or_wo_ax_label[ax_label]))
 # breakpoint()
@@ -545,8 +580,8 @@ y_pos = ratio_s_i[["spine","shaft"]].to_numpy()
 ratio_s_i_melted = ratio_s_i.melt(id_vars=["id"],
                              var_name="localization",
                              value_name="ratio")
-breakpoint()
 pairs = [("spine","shaft")]
+order = ["spine","shaft"]
 x="localization"
 y = "ratio"
 labs = []
@@ -554,6 +589,9 @@ xlab = "Compartment"
 s_glua = "s{}".format(subunit)
 i_glua = "i{}".format(subunit)
 ylab= r"$\frac{"+s_glua+"}{"+i_glua+"}$"
+ylims = [0,1.1]
+y_tics = np.arange(ylims[0],ylims[1],0.25)
+# breakpoint()
 plt_widget.SwarmboxLineplotcombo(data=ratio_s_i_melted,
                              x=x,
                              y=y,
@@ -563,7 +601,8 @@ plt_widget.SwarmboxLineplotcombo(data=ratio_s_i_melted,
                              title="",
                              labs=labs,
                              pairs=pairs,
-                             color_pal=my_pal1,
+                             order = order,
+                             color_pal=my_pal5,
                              stat_test=stat_test,
                              xfsize=fsize,
                              yfsize=1.2 * fsize,
@@ -571,7 +610,9 @@ plt_widget.SwarmboxLineplotcombo(data=ratio_s_i_melted,
                              save_it=save_it,
                              ax_lab=ax_label,
                              x_pos=x_pos,
-                             line_y_data=y_pos
+                             line_y_data=y_pos,
+                             y_lims=ylims,
+                             y_tics=y_tics
                             )
 # """
 # fig,ax = plt.subplots(nrows=1,ncols=1)
@@ -743,7 +784,8 @@ for comp in compartments:
                                  save_it=save_it,
                                  ax_lab=ax_label,
                                  x_pos=x_pos,
-                                 line_y_data=y_pos)
+                                 line_y_data=y_pos,
+                                     y_tics=np.array([]))
     fig, ax = plt.subplots(figsize=(8, 6), nrows=1, ncols=1)
     if ax_label == 1:
         xlabel = "SE using Helm et al., 2021"

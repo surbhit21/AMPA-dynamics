@@ -1,15 +1,15 @@
-import json
+# import json
 
 from GluA2_model_fitting import *
-import matplotlib.pyplot as plt
-import matplotlib
+# import matplotlib.pyplot as plt
+# import matplotlib
 # matplotlib.use("TkAgg")
+import pickle
 from SNSPlottingWidget import SNSPlottingWidget
 import seaborn as sns
 from scipy.stats import ks_2samp, kruskal,spearmanr,pearsonr
 sns.set_style(style='white')
 from Utility import *
-
 
 
 class GluA2DataAnalysis():
@@ -315,6 +315,36 @@ def R_seq(y_fit,y_orig):
     return 1 - (ss_res/ss_tot)
 
 
+def ReadDataDict(fname):
+    with open(fname,'rb') as infile:
+        d = pickle.load(infile)
+    print("{} loaded!".format(fname))
+    return d
+
+def DumpDict(fname,datadict):
+    with open(fname,'wb') as outfile:
+        pickle.dump(datadict,outfile, protocol=pickle.HIGHEST_PROTOCOL)
+    print("{} saved!".format(fname))
+
+def ReadData():
+    curr_wd = os.getcwd()
+    print(curr_wd)
+    return [
+        ReadDataDict(os.path.join(curr_wd,"Protein_data/int_glua2_data.pickle")),
+        ReadDataDict(os.path.join(curr_wd, "Protein_data/surf_glua2_data.pickle")),
+        ReadDataDict(os.path.join(curr_wd,"Protein_data/int_glua2_density.pickle")),
+        ReadDataDict(os.path.join(curr_wd, "Protein_data/surf_glua2_density.pickle")),
+        ReadDataDict(os.path.join(curr_wd, "Protein_data/ratio_int_surf.pickle")),
+        ReadDataDict(os.path.join(curr_wd, "Protein_data/total_ratio_int_surf.pickle")),
+        ReadDataDict(os.path.join(curr_wd, "Protein_data/int_df.pickle")),
+        ReadDataDict(os.path.join(curr_wd, "Protein_data/surf_df.pickle")),
+        ReadDataDict(os.path.join(curr_wd, "Protein_data/raw_int_data.pickle")),
+        ReadDataDict(os.path.join(curr_wd, "Protein_data/raw_surf_data.pickle")),
+        ReadDataDict(os.path.join(curr_wd, "Protein_data/GFP_data.pickle")),
+        ReadDataDict(os.path.join(curr_wd, "Protein_data/GFP_soma.pickle")),
+        ReadDataDict(os.path.join(curr_wd, "Protein_data/int_glua2_bg.pickle")),
+        ReadDataDict(os.path.join(curr_wd, "Protein_data/surf_glua2_bg.pickle"))
+    ]
 
 
 in_set = 1  #plot in_set normalized plots ?
@@ -323,13 +353,14 @@ ax_label = 1 #plot axis labels or not (=1 for yes)
 lable_or_no_label = ["","with_label"]
 off_set = 0
 G2DA_c = GluA2DataAnalysis("/Users/surbhitwagle/Desktop/Surbhit/Work/PhD/2020/PhD/MPIBR/PhD-Project/Experimental_collab/Max-Kracht/GluA2/Control/whole_neuron")
-fsize = 26
-lsize= 26
+fsize = 30
+lsize= 30
 int_glua2_data, surf_glua2_data,int_glua2_density, surf_glua2_density,ratio_int_surf,\
     total_ratio_int_surf,int_df,\
         surf_df, raw_int_data,raw_surf_data,\
-GFP_data,GFP_soma,int_glua2_bg,surf_glua2_bg = G2DA_c.LoadData(bins,15,exclude_cells=[])
-breakpoint()
+GFP_data,GFP_soma,int_glua2_bg,surf_glua2_bg = ReadData()
+
+
 mean_surf,mean_int,sem_surf,sem_int,std_surf,std_int,norm_int_c,norm_surf_c = G2DA_c.GetNormalizedDendriticDistribution(int_glua2_data,surf_glua2_data)
 mean_surf_density,mean_int_density,sem_surf_density,sem_int_density,std_surf_density,std_int_density,norm_int_c_density,norm_surf_c_density = G2DA_c.GetNormalizedDendriticDistribution(int_glua2_density,surf_glua2_density)
 mean_GFP,mean_GFP,sem_GFP,sem_GFP,std_GFP,std_GFP,norm_GFP,norm_GFP = G2DA_c.GetNormalizedDendriticDistribution(GFP_data,GFP_data)
@@ -422,9 +453,9 @@ for ldx,l1 in enumerate(to_analyse):
     # print("popt = ",popt,"pcov = ",pcov)
     print("popt_e = ",popt_e,"pcov_e = ",pcov_e)
      # ax1[ldx].plot(x,mean_fit,'r-.',label=r"line-fit,$R^2 = %.2f$" % r2)
-    ax1[ldx].errorbar(x+bin_size/2,mean_ratio,sem_ratio,color=COLORS_dict["s_2_i_ratio"],label='data',marker='o',
+    ax1[ldx].errorbar(x+bin_size/2,mean_ratio,sem_ratio,color="gray",label='data',marker='o',
                       markersize=plt_widget.msize,linestyle='None' ,zorder=6)
-    ax1[ldx].plot(x+bin_size/2,mean_fit_exp,color=COLORS_dict["s_2_i_ratio"],
+    ax1[ldx].plot(x+bin_size/2,mean_fit_exp,color="gray",
                   linestyle='-',label=r"exp-fit" )
     print(r2_exp,1- mean_fit_exp[-1]/mean_fit_exp[0],1-mean_fit[-1]/mean_fit[0])
     ax1[ldx].grid(False)
@@ -448,37 +479,6 @@ for ldx,l1 in enumerate(to_analyse):
 
 plt.tight_layout()
 plt_widget.SaveFigures(os.path.join(op_folder,"Surface_to_internal_glua2_ratio_exp_fitted".format(lable_or_no_label[ax_label])))
-plt.show()
-
-
-fig,ax2 = plt.subplots(figsize=(8,6*len(to_analyse)),ncols=1,nrows=len(to_analyse))
-if len(to_analyse) == 1:
-    ax2 = [ax2]
-# breakpoint()
-off_set = 0
-for ldx,l1 in enumerate(to_analyse):
-    x=  np.arange(0, l1, bin_size)
-    ax2[ldx].errorbar(x+bin_size/2,mean_surf[l1],sem_surf[l1],color=COLORS_dict["shaft_s"],label="surface",marker='s',linestyle="-")
-    ax2[ldx].errorbar(x+bin_size/2,mean_int[l1],sem_int[l1],color=COLORS_dict["shaft_i"],label="internal",marker='o',linestyle="--")
-    # ax2[ldx].errorbar(x+bin_size/2,mean_GFP[l1],sem_GFP[l1],label = "GFP",color="green",marker='8',linestyle="-." )
-    # ax2[ldx].set_style(style="white")
-    # # ax2[ldx].set_facecolor("white")
-    ax2[ldx].spines['right'].set_visible(False)
-    ax2[ldx].spines['top'].set_visible(False)
-    # ax2[ldx].yaxis.set_ticks_position('left')
-    # ax2[ldx].xaxis.set_ticks_position('bottom')
-    # ax2[ldx].grid(False)
-    if ax_label == 1:
-        ax2[ldx].set_ylabel("Normalized fluorescence ",fontsize=fsize)
-        ax2[ldx].set_xlabel(r"Dendritic distance ($\mu m$)",fontsize=fsize)#.format(int_glua2_data[l1].shape[0]),fontsize=fsize)
-        # ax2[ldx].set_title("Dendritic distribution of normalized fluorescence intensity",fontsize=fsize)
-    ax2[ldx].legend(fontsize=lsize,frameon=False,labelcolor='linecolor')
-    # ax2[1].legend()
-    ax2[ldx].set_xlim([-1,l1+2])
-    # ax2[ldx].set_ylim([0,3])
-    # ax2[1].set_xlim([-4,100])
-plt.tight_layout()
-plt_widget.SaveFigures(os.path.join(op_folder,"Glua2_normalized_fluorescent_intensity".format(lable_or_no_label[ax_label])))
 plt.show()
 
 
@@ -557,18 +557,22 @@ ratio_s_i_ind['ratio']  = (surf_df[stat]-surf_df[stat_bg])/(int_df[stat] - int_d
 ratio_s_i_ind["compartment"] = surf_df.compartment
 ratios_soma = ratio_s_i_ind[ratio_s_i_ind['compartment'] == "Soma"]['ratio']
 ratios_dendrite = ratio_s_i_ind[ratio_s_i_ind['compartment'] == "Dendrite"]['ratio']
-my_pal1 = {"Soma":COLORS_dict["soma"],"Dendrite": COLORS_dict["shaft"]}
+# my_pal1 = {"Soma":COLORS_dict["soma"],"Dendrite": COLORS_dict["shaft"]}
+my_pal1 = {"Soma":"k","Dendrite": "k"}
 # breakpoint()
 x = "compartment"
 y = "ratio"
 hue = None#["Soma","Dendrite"]
+order = ["Soma","Dendrite"]
 xlab = "Compartment"
 ylab = r"$\frac{sGluA2}{iGluA2}$"
 title = ""
-stat_test = "Kruskal"
+stat_test = "Mann-Whitney"
 
 fig_file = os.path.join(op_folder,"Glua2_surface_to_internal_soma_vs_dendrite".format(lable_or_no_label[ax_label]))
 pairs = [("Soma","Dendrite")]
+
+
 plt_widget.Swarmboxplotcombo(data=ratio_s_i_ind,
                              x=x,
                              y=y,
@@ -576,6 +580,7 @@ plt_widget.Swarmboxplotcombo(data=ratio_s_i_ind,
                              xlab=xlab,
                              ylab=ylab,
                              pairs=pairs,
+                             order = order,
                              title=title,
                              color_pal=my_pal1,
                              stat_test=stat_test,
@@ -583,7 +588,8 @@ plt_widget.Swarmboxplotcombo(data=ratio_s_i_ind,
                              yfsize=1.2 * fsize,
                              fname=fig_file,
                              save_it=1,
-                             ax_lab=ax_label)
+                             ax_lab=ax_label,
+                             )
 # fig,ax = plt.subplots(figsize=(8,6),nrows=1,ncols=1)
 # ax.tick_params(axis='both', which='major', labelsize=18)
 # sns.set(font_scale = 1.5)
