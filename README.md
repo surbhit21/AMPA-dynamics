@@ -110,3 +110,25 @@ For Fig 5 F
 ```python
 python LoadNPlot.py -d 11_11_2024_10_35_01 -s GluA2
 ```
+
+
+## Contributing
+
+This code was developed by [Surbhit Wagle](https://sites.google.com/view/surbhitwagle/home)
+
+## License
+
+[MIT](https://choosealicense.com/licenses/mit/)
+## Support
+This work is supported by the [CRC 1080](https://www.crc1080.com) funded by DFG .
+
+
+## Authors and acknowledgment
+We would like to thank all our lab members for fruitful discussions and helpful feedback. This study was supported by the University of Bonn Medical Center (SW, NK, TT), University of Mainz medical center (SW, TT), the German Research Foundation via CRC1080 (SW, TT), the Donders Institute for Brain, Cognition and Behaviour and Faculty of Science, Radboud University Nijmegen Netherlands (AH). This project has received funding from the European Research Council (ERC) under the European Union’s Horizon 2020 research and innovation programme (‘MolDynForSyn’, grant agreement No. 945700) (TT) & (‘MemCode’, grant agreement No. 101076961) (AH). AH also received support by the EMBO long-term postdoctoral fellowship (ALTF 1095-2015) and the Alexander von Humboldt Foundation (FRA-1184902HFST-P).
+
+## License
+For open source projects, say how it is licensed.
+
+## Project status
+We are curretly still working on updating the scripts for small changes in the plots and any new analysis that might come up.
+
