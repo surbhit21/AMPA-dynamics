@@ -3,7 +3,10 @@ This is the read me for the repository containing the scripts used to analyse pr
 Surbhit Wagle, Maximilian K. Kracht, Anne Bührke, Amparo Acker-Palmer, Nataliya Kraynyukova, Anne-Sophie Hafner,  Erin M. Schuman,  Tatjana Tchumatchenko.
 doi: https://doi.org/10.1101/2025.02.08.637220
 
-## Pre-requisite
+# 1. System requirements
+The requirement for running this code includes: Python. The code was developed on Apple MacBook Pro M1 running Sonoma 14.5 os with a RAM of 32 GB and
+storage of 1 TB. As some of the figure requires downloading simulation data, please insure you have enough RAM and storage space.
+# 2.Pre-requisite
 
 Use the package manager [pip](https://pip.pypa.io/en/stable/) to install following packages.
 
@@ -76,8 +79,9 @@ Please note that for legacy reasons, we have devided the code base into two repo
 1. https://github.com/surbhit21/AMPA-dynamics
 2. https://github.com/surbhit21/mRNA_analysis.
 
-To reproduce the figures, please do the following
-(in case you do not see the figure listed below, please check the second repository)
+In order to run the code, you can download or clone this repository, typical installation time is a few minutes (depending on internet speed).
+To reproduce the figures, open the repository in terminal and do the following 
+(in case you do not see the figure listed below, please check the second repository):
 
 For Figs 2 B and C, S4
 ```python
@@ -112,6 +116,8 @@ For Fig 5 F
 ```python
 python LoadNPlot.py -d 11_11_2024_10_35_01 -s GluA2
 ```
+
+The run time for each file should take between 10 seconds to a few minutes (depending on your hardware configuration).
 
 # 4.Contribution
 
