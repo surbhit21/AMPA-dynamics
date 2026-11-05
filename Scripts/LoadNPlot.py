@@ -192,8 +192,8 @@ Plotting the time evolution of stimulated locations over time
 """
 # print(timepoints.shape)
 # breakpoint()
-patterson_1g = patterson_data_1g()
-patterson_4c = patterson_data_4c()
+# patterson_1g = patterson_data_1g()
+# patterson_4c = patterson_data_4c()
 tanaka_psd,tanaka_dend = tanaka_data_s3()
 # CF_PSD = get_CF_2023_4_data()
 CF_PSD = pd.read_csv("./CF_2023_T4.csv")
@@ -259,23 +259,23 @@ def plotIndividual(data1,data2,tps1,tps2,lc1,lab_index,d1_suf,d2_suf,ax_label=0)
     plt.show()
 
 # plotIndividual(aligned_d1,aligned_d2,tp1,tp2,250,2," R1"," R2")
-def comparePatterson(loc):
-    fig,ax = plt.subplots(figsize = (8,6),nrows=1,ncols=1)
-    tps = (timepoints-30)/60
-    total_surf = (data[labels[1]][loc,:] + data[labels[2]][loc, :])
-    total_surf = total_surf[0]
-    # breakpoint()
-    perce_increas = (total_surf - total_surf[0])/total_surf[0]
-    plt.errorbar(patterson_1g[:,0],patterson_1g[:,1],patterson_1g[:,2],color="k",marker='d',linestyle='--',label="data")
-    plt.plot(tps,  total_surf, color="blue", label="model")
-    # plt.ylabel(r"$\Delta$ Total Surf count ($\%$)")
-    # plt.xlabel(r"Simulation Time (in mins)")
-    ax.hlines(y=160, xmin=0, xmax=1, linewidth=2, color='r')
-    ax.text(x=0, y=162, s="Stim", fontsize=f_size)
-    plt.legend(fontsize=f_size)
-    plt.tight_layout()
-    SaveFigures("{}/Patterson_2010_fit_{}".format(op_folder, date_time))
-    plt.show()
+# def comparePatterson(loc):
+#     fig,ax = plt.subplots(figsize = (8,6),nrows=1,ncols=1)
+#     tps = (timepoints-30)/60
+#     total_surf = (data[labels[1]][loc,:] + data[labels[2]][loc, :])
+#     total_surf = total_surf[0]
+#     # breakpoint()
+#     perce_increas = (total_surf - total_surf[0])/total_surf[0]
+#     plt.errorbar(patterson_1g[:,0],patterson_1g[:,1],patterson_1g[:,2],color="k",marker='d',linestyle='--',label="data")
+#     plt.plot(tps,  total_surf, color="blue", label="model")
+#     # plt.ylabel(r"$\Delta$ Total Surf count ($\%$)")
+#     # plt.xlabel(r"Simulation Time (in mins)")
+#     ax.hlines(y=160, xmin=0, xmax=1, linewidth=2, color='r')
+#     ax.text(x=0, y=162, s="Stim", fontsize=f_size)
+#     plt.legend(fontsize=f_size)
+#     plt.tight_layout()
+#     SaveFigures("{}/Patterson_2010_fit_{}".format(op_folder, date_time))
+#     plt.show()
 
 def compareTanaka():
     """

@@ -10,19 +10,20 @@ import pandas as pd
 from  SNSPlottingWidget import SNSPlottingWidget
 from Utility import COLORS_dict, SaveFigures
 import scipy as sp
-root_folder = "/Users/surbhitwagle/Desktop/Surbhit/Work/PhD/2020/PhD/MPIBR/PhD-Project/Experimental_collab/Published/"
-Patterson_2010_4c_file = os.path.join(root_folder,"Patterson_2010_4C.csv")
-Patterson_2010_1g_file = os.path.join(root_folder,"Patterson_2010_1G.csv")
-Patterson_2010_1b_file = os.path.join(root_folder,"Patterson_2010_1B.csv")
+root_folder = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                           "Source_data")
+# Patterson_2010_4c_file = os.path.join(root_folder,"Patterson_2010_4C.csv")
+# Patterson_2010_1g_file = os.path.join(root_folder,"Patterson_2010_1G.csv")
+# Patterson_2010_1b_file = os.path.join(root_folder,"Patterson_2010_1B.csv")
 Tanaka_2012_S3a_PSD_file = os.path.join(root_folder,"Tanaka_2012_S3A_PSLM.csv")
 Tanaka_2012_S3a_Dend_file = os.path.join(root_folder,"Tanaka_2012_S3A_NON_PSLM.csv")
 Tanaka_2012_exo_data = os.path.join(root_folder,"Tanaka_2012_exo_NPLSM.csv")
 
-Oh_2015_stim_spine_vol = os.path.join(root_folder,"Oh2015_1D.csv")
-Oh_2015_unstim_spine_vol = os.path.join(root_folder,"Oh2015_1C.csv")
+# Oh_2015_stim_spine_vol = os.path.join(root_folder,"Oh2015_1D.csv")
+# Oh_2015_unstim_spine_vol = os.path.join(root_folder,"Oh2015_1C.csv")
 
-Graves_2021_glua1 = os.path.join(root_folder,"Graves_2021_5DGreen.csv")
-Graves_2021_dsred = os.path.join(root_folder,"Graves_2021_5DRed.csv")
+# Graves_2021_glua1 = os.path.join(root_folder,"Graves_2021_5DGreen.csv")
+# Graves_2021_dsred = os.path.join(root_folder,"Graves_2021_5DRed.csv")
 
 my_pal1= {"Control": COLORS_dict["spine"],"cLTP": COLORS_dict["shaft"]}
 Clavet_Fournier_2023_4_folder = os.path.join(root_folder,"K_Willig/Fig4/")
@@ -91,25 +92,25 @@ def ReadCSVTime(filename):
                 data_mat.append(row_data)
         data_mat = np.asarray(data_mat)
         return data_mat
-def patterson_data_1g():
-    data = ReadCSVFull(Patterson_2010_1g_file)
-    return data
-def patterson_data_4c():
-    data = ReadCSVFull(Patterson_2010_4c_file)
-    return data
+# def patterson_data_1g():
+#     data = ReadCSVFull(Patterson_2010_1g_file)
+#     return data
+# def patterson_data_4c():
+#     data = ReadCSVFull(Patterson_2010_4c_file)
+#     return data
 
-def patterson_data_1b():
-    data = ReadCSVFull(Patterson_2010_1b_file)
-    return data
+# def patterson_data_1b():
+#     data = ReadCSVFull(Patterson_2010_1b_file)
+#     return data
 def tanaka_data_s3():
     psd_data = ReadCSVFull(Tanaka_2012_S3a_PSD_file)
     dend_data = ReadCSVFull(Tanaka_2012_S3a_Dend_file)
     return psd_data, dend_data
 
-def graves_data_5d():
-    dsred_data = ReadCSVTime(Graves_2021_dsred)
-    glua1_data = ReadCSVTime(Graves_2021_glua1)
-    return glua1_data,dsred_data
+# def graves_data_5d():
+#     dsred_data = ReadCSVTime(Graves_2021_dsred)
+#     glua1_data = ReadCSVTime(Graves_2021_glua1)
+#     return glua1_data,dsred_data
 
 def get_tanaka_exo_data():
     exo_data = ReadCSVFull(Tanaka_2012_exo_data)
@@ -145,7 +146,7 @@ def plotTanakaExoprofile():
 
 def plot_spine_head_data():
     fig, ax = plt.subplots(nrows=1, ncols=1)
-    data = pd.read_csv(os.path.join(root_folder,"K_Willig/Fig2F.csv"))
+    data = pd.read_csv(os.path.join(root_folder,"Fig2F.csv"))
     coi = ["Before LTP. -15min", "during LTP. -5min","30min after LTP","60min after LTP","120min after LTP" ]
     means = data.mean()[2:7]#np.zeros((len(coi),1))
     stds = data.std()[2:7]#np.zeros((len(coi), 1))
@@ -239,7 +240,7 @@ def get_CF_2023_4_data():
                        'cLTP+ 60 min' : 60,
                        'cLTP + 2h' : 120}
 
-    df = pd.read_excel(os.path.join(root_folder,'K_willig/TableS4_relto_Figure4.xlsx'), sheet_name=None)
+    df = pd.read_excel(os.path.join(root_folder,'TableS4_relto_Figure4.xlsx'), sheet_name=None)
     print(df.keys())
     control_df = pd.DataFrame()
     cLTP_df = pd.DataFrame()
@@ -398,9 +399,9 @@ def get_CF_2023_4_data():
 # # sns.
 # plt.show()
 
-def oh_data_stim_vol():
-    data = ReadCSVFull(Oh_2015_stim_spine_vol)
-    return data
+# def oh_data_stim_vol():
+#     data = ReadCSVFull(Oh_2015_stim_spine_vol)
+#     return data
 
 def vol_to_sa(fname):
     data = ReadCSVFull(fname)
@@ -414,16 +415,16 @@ def vol_to_sa(fname):
     return data
 
 
-def oh_data_unstim_vol():
-    data = ReadCSVFull(Oh_2015_unstim_spine_vol)
-    return data
+# def oh_data_unstim_vol():
+#     data = ReadCSVFull(Oh_2015_unstim_spine_vol)
+#     return data
 
-def oh_data_stim_sa():
-    data = vol_to_sa(Oh_2015_stim_spine_vol)
-    return data
-def oh_data_unstim_sa():
-    data = vol_to_sa(Oh_2015_unstim_spine_vol)
-    return data
+# def oh_data_stim_sa():
+#     data = vol_to_sa(Oh_2015_stim_spine_vol)
+#     return data
+# def oh_data_unstim_sa():
+#     data = vol_to_sa(Oh_2015_unstim_spine_vol)
+#     return data
 
 # stim_d,unstim_d = oh_data_stim_sa(),oh_data_unstim_sa()
 

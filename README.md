@@ -53,16 +53,22 @@ Download or clone this repository and install the dependencies listed above. The
 
 Run Python commands from the repository root (`AMPA-dynamics`), using the `python Scripts/<script>.py` commands below. Python automatically makes `Scripts` available for sibling imports, including `AMPA_model.py`; no `PYTHONPATH` configuration is needed for these commands. Some scripts require input paths and protocol settings to be configured in the source before execution.
 
-| Figure panels | Analysis script or notebook | Analysis |
-| --- | --- | --- |
-| 1F–H, S2 | `python Scripts/ParameterExplorationPlots.py` | Effects of transport velocity and surface/internal diffusion coefficients on steady-state AMPAR distributions |
-| 3A | `python Scripts/Tanaka2012GluA1plasticity.py` | Simulation of GluA1 plasticity using the Tanaka 2012 protocol |
-| S4 | `python Scripts/Fitting_to_HaloTagData.py` | HaloTag surface/internal GluA2 profiles, ratios, and model fitting |
-| 3B, 5D–F, S8, S9, S16 | `python Scripts/GluA2_plasticity.py` | Generate GluA2 plasticity simulations using the corresponding protocol settings |
+| Figure panels | Analysis script or notebook | Analysis | Experimental source data |
+| --- | --- | --- | --- |
+| 1F–H, S2 | `python Scripts/ParameterExplorationPlots.py` | Effects of transport velocity and surface/internal diffusion coefficients on steady-state AMPAR distributions | Model simulations |
+| 3A | `python Scripts/Tanaka2012GluA1plasticity.py`; `compareTanaka()` in `Scripts/LoadNPlot.py` | Simulate GluA1 plasticity and compare with Tanaka and Hirano (2012) | `Source_data/Tanaka_2012_S3A_PSLM.csv` and `Source_data/Tanaka_2012_S3A_NON_PSLM.csv` |
+| S4 | `python Scripts/Fitting_to_HaloTagData.py` | HaloTag surface/internal GluA2 profiles, ratios, and model fitting | Profiles in `Data/HaloGluA2_analysis/` |
+| 3B, 5D–F, S9, S16 | `python Scripts/GluA2_plasticity.py`; `compareClavet_Fournier()` in `Scripts/LoadNPlot.py` | Generate GluA2 plasticity simulations and compare with Clavet–Fournier PSD data | `Source_data/CF_2023_T4.csv` (Clavet–Fournier 2024 PSD data; see filename note below) |
+| S8 | `python Scripts/GluA2_plasticity.py` | Generate GluA2 plasticity simulations using the corresponding protocol settings | Model simulations |
+| S7 | `plotTanakaExoprofile()` in `Scripts/GetPublishedData.py` | Plot the Tanaka and Hirano (2012) exocytosis-rate time course and model profile | `Source_data/Tanaka_2012_exo_NPLSM.csv` |
 
 Additional figure-to-script mappings will be added once confirmed.
 
 Use `python Scripts/LoadNPlot.py` to plot saved GluA2 simulation results and compare them with experimental data.
+
+Published experimental data are read by `Scripts/GetPublishedData.py` from `Source_data`, independently of the working directory. Select the appropriate comparison function and simulation dataset in `Scripts/LoadNPlot.py` before running it. For Figure S7, call `plotTanakaExoprofile()`; its example call is currently commented out. Patterson comparisons are not used in the paper.
+
+Filename notes: the Clavet–Fournier PSD table referred to as `CF_2024_T4.csv` is currently stored as `Source_data/CF_2023_T4.csv`. Update the CSV read/write paths in `Scripts/LoadNPlot.py` to that location before plotting; they currently point to `./CF_2023_T4.csv`. The Figure S7 loader expects `Tanaka_2012_exo_NPLSM.csv`, but only `Tanaka_2012_exo_NPLSM_old.csv` is currently present. Confirm the intended data file before generating that panel.
 
 Download the simulation data from [GluA_simulations](https://gin.g-node.org/surbhitw/GluA_simulations). Configure `sim_folder`, `date_time`, `input_folder`, and the protocol metadata path in `Scripts/LoadNPlot.py` for the selected dataset. The current script does not parse a `-d` command-line argument. The dataset identifiers previously used for these panels are:
 
@@ -84,7 +90,7 @@ This code was developed by [Surbhit Wagle](https://sites.google.com/view/surbhit
 
 # 5.Data Sources
 
-All data used for plotting are provided in the `Figure_data` folder. Raw data required to rerun some of the analyses can be made available upon reasonable request.
+Published experimental source data are provided in `Source_data`; processed HaloTag profiles are in `Data/HaloGluA2_analysis`. See the Usage table for figure-specific inputs and filename notes, and the simulation-data link above for saved simulations. Raw data required to rerun some of the analyses can be made available upon reasonable request.
 
 # 6.Acknowledgment
 
