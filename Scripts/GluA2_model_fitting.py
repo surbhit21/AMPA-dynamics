@@ -1,7 +1,3 @@
-import sys
-# caution: path[0] is reserved for script path (or '' in REPL)
-sys.path.insert(1, '/Users/surbhitwagle/Desktop/Surbhit/Work/PhD/2020/PhD/MPIBR/PhD-Project/Mo/Python-code/ampa-dynamics')
-
 # import file
 from AMPA_model import *
 import csv

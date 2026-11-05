@@ -47,18 +47,32 @@ pip install -r requirement.txt
 
 Or you can choose to install them separately
 
-# Download the simulation data from [GluA_simulations](https://gin.g-node.org/surbhitw/GluA_simulations). Set `input_folder` in `Scripts/LoadNPlot.py` to the downloaded data location. The dataset identifiers previously used for the three panels are:
+# 3.Usage
 
-```bash
-# Figure 5D
-python Scripts/LoadNPlot.py -d GluA2/CNIH2_Dep/04_19_2026_18_20_19
+Download or clone this repository and install the dependencies listed above. The table below identifies the analysis entry points for the figure panels. Plotting source data are described in Data Sources; rerunning the original analyses additionally requires the corresponding raw, intermediate, or simulation input files, which are not necessarily included in the repository.
 
-# Figure 5E
-python Scripts/LoadNPlot.py -d GluA2/CNIH2_Dep/04_19_2026_20_34_10
+Run Python commands from the repository root (`AMPA-dynamics`), using the `python Scripts/<script>.py` commands below. Python automatically makes `Scripts` available for sibling imports, including `AMPA_model.py`; no `PYTHONPATH` configuration is needed for these commands. Some scripts require input paths and protocol settings to be configured in the source before execution.
 
-# Figure 5F
-python Scripts/LoadNPlot.py -d  GluA2/CNIH2_Dep/04_19_2026_21_12_22
-```
+| Figure panels | Analysis script or notebook | Analysis |
+| --- | --- | --- |
+| 1F–H, S2 | `python Scripts/ParameterExplorationPlots.py` | Effects of transport velocity and surface/internal diffusion coefficients on steady-state AMPAR distributions |
+| 3A | `python Scripts/Tanaka2012GluA1plasticity.py` | Simulation of GluA1 plasticity using the Tanaka 2012 protocol |
+| S4 | `python Scripts/Fitting_to_HaloTagData.py` | HaloTag surface/internal GluA2 profiles, ratios, and model fitting |
+| 3B, 5D–F, S8, S9, S16 | `python Scripts/GluA2_plasticity.py` | Generate GluA2 plasticity simulations using the corresponding protocol settings |
+
+Additional figure-to-script mappings will be added once confirmed.
+
+Use `python Scripts/LoadNPlot.py` to plot saved GluA2 simulation results and compare them with experimental data.
+
+Download the simulation data from [GluA_simulations](https://gin.g-node.org/surbhitw/GluA_simulations). Configure `sim_folder`, `date_time`, `input_folder`, and the protocol metadata path in `Scripts/LoadNPlot.py` for the selected dataset. The current script does not parse a `-d` command-line argument. The dataset identifiers previously used for these panels are:
+
+| Figure panel | Simulation dataset identifier |
+| --- | --- |
+| 5D | `GluA2/CNIH2_Dep/04_19_2026_18_20_19` |
+| 5E | `GluA2/CNIH2_Dep/04_19_2026_20_34_10` |
+| 5F | `GluA2/CNIH2_Dep/04_19_2026_21_12_22` |
+
+Use the folder names and capitalization in the downloaded dataset when setting paths.
 
 # 4.Contribution
 
