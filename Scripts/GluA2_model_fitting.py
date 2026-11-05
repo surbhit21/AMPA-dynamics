@@ -43,16 +43,16 @@ def ExpFit(xdata, ydata):
 def FitModel(x, data,sigmas, rat, soma_rat, length_to_fit,pars=[]):
     if pars == []:
         fit_paramas = Parameters()
-        np.random.seed(2023)
+        np.random.seed(2026)
         dc_min = -3.
-        dc_max = 0.
+        dc_max = 1.
         dc_init = np.random.uniform(dc_min, dc_max)
-        ds_min = -3.
-        ds_max = 0.
+        ds_min = -2.
+        ds_max = 1.
         ds_init = np.random.uniform(ds_min, ds_max)
         vp_min = -5.
         vp_max = -3.
-        vp_init = np.random.uniform(vp_min, vp_max) #-2.80185308
+        vp_init = np.random.uniform(vp_min, vp_max)
 
         # breakpoint()
         print("dc_init = ", 10 ** dc_init, end=" ")

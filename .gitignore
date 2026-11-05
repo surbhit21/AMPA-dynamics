@@ -117,10 +117,10 @@ dmypy.json
 
 #ignoring the figures, Data and optimization folders for now
 
-Figures/
-Data/
-optimization/
-Time-dependent/
+/Figures/
+# Data/
+/optimization/
+/Time-dependent/
 HPC-runs/
 *.svg
 *.pdf
@@ -130,3 +130,7 @@ HPC-runs/
 *.pptx
 SampleAnim.py
 SNSPlottingWidget.py
+/rw_scripts/
+/old_figures/
+/CNIH2-translation/
+/Unused_data/

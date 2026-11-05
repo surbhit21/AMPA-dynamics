@@ -15,6 +15,7 @@ matplotlib.use("Qt5Agg")
 import matplotlib.pyplot as plt
 import math
 import numpy as np
+from pathlib import Path
 from pylab import plot, show, savefig, xlim, figure, ylim, legend, boxplot, setp, axes
 from scipy.integrate import solve_bvp
 import scipy.optimize as opt       # import root-finding algorithm
@@ -122,7 +123,7 @@ class DendriteWithStochasticSpinesConstantV():
     """
 
     def __init__(self, D_s, D_c, V_p, half_life_surf, half_life_int, alpha,
-                 beta, Jsin, Jcin, omega, eta,gamma,dx,L= 100):
+                 beta, Jsin, Jcin, omega, eta,gamma,dx,L= 500):
         self.D_s = D_s   # in uM^2/s
         self.D_c = D_c   # in uM^2/s
         self.V_p = V_p    # in uM/s
@@ -257,11 +258,13 @@ def savemodelparams(SP_model1,param_file):
 
 ## used for model fitting
 def RunSimGluA2(delta_x,v_p,D_c,D_s,rat):
-    Jcin= 0.021
+    Jcin= 0.03
     alpha= 6e-4
     beta = alpha*rat
-    eta = 0.00070
+    eta = 0.00065
     gamma= 1/(43)
+    omega = 250
+    # breakpoint()
     SP_model1 = DendriteWithStochasticSpinesConstantV(D_s,
                                                       D_c,
                                                       v_p,
@@ -271,7 +274,7 @@ def RunSimGluA2(delta_x,v_p,D_c,D_s,rat):
                                                       beta,
                                                       0,
                                                       Jcin,
-                                                      60,
+                                                      omega,
                                                       eta,
                                                       gamma,
                                                       delta_x,
@@ -283,12 +286,35 @@ def RunSimGluA2(delta_x,v_p,D_c,D_s,rat):
     ps_spine = SP_model1.omega * (1 / (1 + (SP_model1.gamma / (SP_model1.eta * ps_dist))))
     fig, ax = plt.subplots(figsize=(10, 8))
     fsize = 16
-    ax.plot(SP_model1.x_grid, ps_dist , label=r"$GluA2:p_s$", color=color_surf, linewidth=3.0)
-    ax.plot(SP_model1.x_grid, pc_dist , label=r"$GluA2:P_c$", color=color_cyto, linewidth=3.0)
-    ax.plot(SP_model1.x_grid, ps_spine, label=r"$GluA2:P_{PSD}$", color=color_spine, linewidth=3.0)
+    ax.plot(SP_model1.x_grid, ps_dist , label=r"$GluA2:P_s$", color=color_surf, linewidth=3.0)
+    ax.plot(SP_model1.x_grid, pc_dist  , label=r"$GluA2:P_c$", color=color_cyto, linewidth=3.0)
+    ax.plot(SP_model1.x_grid, ps_spine , label=r"$GluA2:P_{PSD}$", color=color_spine, linewidth=3.0)
     fig.tight_layout()
     plt.legend(prop={'size': fsize})
     SaveFigures("./ModelDistGluA2")
+    plt.show()
+    fig, ax = plt.subplots(figsize=(6,5))
+    fsize = 26
+    # ax.plot(SP_model1.x_grid, ps_dist/ps_dist[0] , label=r"$GluA2:p_s$", color=color_surf, linewidth=3.0)
+    # ax.plot(SP_model1.x_grid, pc_dist/pc_dist[0] , label=r"$GluA2:P_c$", color=color_cyto, linewidth=3.0)
+    # ax.plot(SP_model1.x_grid, ps_spine/ps_spine[0], label=r"$GluA2:P_{PSD}$", color=color_spine, linewidth=3.0)
+    total_AMPA = ps_dist + pc_dist + ps_spine
+    ax.plot(SP_model1.x_grid, total_AMPA/total_AMPA[0] , label=r"$GluA2:total$", color="#146c75ff", linewidth=3.0)
+    # plt.legend(prop={'size': fsize})
+    plt.xlabel(r"Dendritic distance [$\mu m$]", fontsize=fsize)
+    plt.ylabel("Norm Protein [a.u.]", fontsize=fsize)
+    plt.hlines(1,0,SP_model1.L,linestyles="dashed",colors="grey")
+    plt.title(r"model distribution", fontsize=fsize)
+    # plt.
+    plt.ylim(0.5,1.3)
+    plt.xlim(0,501)
+    plt.yticks([0.6,0.8,1.0,1.2],fontsize=fsize)
+    plt.xticks([0,500],fontsize=fsize)
+    fig.tight_layout()
+    SaveFigures("./ModelDistGluA2_normalized")
+    plt.show()
+    plt.plot(SP_model1.x_grid,ps_spine/ps_dist)
+    print((ps_spine/ps_dist).mean(),(ps_spine/ps_dist).std(),ps_spine.mean(),ps_spine.std(),(ps_spine/omega).mean())
     plt.show()
     return SP_model1.x_grid,ps_dist,pc_dist,ps_spine
 
@@ -310,7 +336,7 @@ def RunSimGluA1(delta_x,v_p,D_c,D_s):
                                                       beta,
                                                       0,
                                                       Jcin,
-                                                      60,
+                                                      120,
                                                       eta,
                                                       gamma,
                                                       delta_x,
@@ -343,16 +369,16 @@ def RunModelWithFile(param_file):
      return ps_dist, pc_dist, ps_spine, SP_model1
 
 
-subunit = "GluA1"
+subunit = "GluA2"
 # if subunit == "GluA2":
 #     RunSimGluA2(0.24,1e-5,0.7,0.7,0.4)
 # else:
 #     RunSimGluA1(1, 1e-5, 0.1, 0.1)
 def RunGluA2SS():
-    RunSimGluA2(1, 1.e-4, 0.7, 0.7, 0.4)
+    RunSimGluA2(1, 9.e-4, 0.4, 0.01, 1.3)
 
 def RunGluA1SS():
-    RunSimGluA1(1, 1e-4, 0.1, 0.1)
+    RunSimGluA1(1, 1e-5, 0.1, 0.1)
 #
 # RunGluA1SS()
 # RunGluA2SS()

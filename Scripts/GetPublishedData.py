@@ -267,20 +267,20 @@ def get_CF_2023_4_data():
 
 #
 # CF_PSD = get_CF_2023_4_data()#pd.read_csv("./CF_2023_T4.csv")
-# # breakpoint()
+# breakpoint()
 # # CF_PSD["GluA2_Area_per_cluster"] = CF_PSD["GluA2_Area"]/CF_PSD["#_Cluster"]
 # # CF_PSD["PSD_Area_per_cluster"] = CF_PSD["PSD_Area"]/CF_PSD["#_Cluster"]
 # CF_PSD.to_csv("./CF_2023_T4.csv", index=False)
 # CF_control_psd = CF_PSD.loc[CF_PSD['condition'] == "Control"]
 # CF_cLTP_psd = CF_PSD.loc[CF_PSD['condition'] == "cLTP"]
 # CF_time_points = CF_PSD["timepoint"].unique()
-# COI = "GluA2_Area"
+# COI = "PSD_Area"
 # cLTP_means = CF_cLTP_psd.groupby('timepoint')[[COI]].mean().to_numpy()
 # # cLTP_means /= cLTP_means[0]
 # cLTP_stds = CF_cLTP_psd.groupby('timepoint')[[COI]].std().to_numpy()
 # cLTP_counts = CF_cLTP_psd.groupby('timepoint')[[COI]].count().to_numpy()
 # cLTP_sems = cLTP_stds/cLTP_counts
-#
+
 # cont_means = CF_control_psd.groupby('timepoint')[[COI]].mean().to_numpy()
 #     # breakpoint()
 # # cont_means /= cont_means[0]
@@ -289,22 +289,21 @@ def get_CF_2023_4_data():
 # cont_sems = cont_stds / cont_counts
 # cLTP_means /= cont_means
 # cLTP_means /= cLTP_means[0]
-# cont_means /= cont_means
 #     # breakpoint()
 # plt_widget = SNSPlottingWidget()
 # fig,ax = plt.subplots(nrows=1,ncols=1,figsize=(8,6))
 # ax.spines['right'].set_visible(False)
 # ax.spines['top'].set_visible(False)
 # ax.errorbar(CF_time_points,100*cLTP_means[:,0],100*cLTP_stds[:,0], color="#ff5008", marker='o', linestyle='',
-#                 label="GluA2 in PSD: cLTP",markersize=12,capsize=3,zorder=10)
+#                 label="cLTP: {}".format(COI),markersize=12,capsize=3,zorder=10)
 # ax.errorbar(CF_time_points, 100 * cont_means[:, 0], 100 * cont_stds[:, 0], color="k", marker='^', linestyle='',
-#             label="GluA2 in PSD: control", markersize=12, capsize=3, zorder=10)
+#             label="control: {}".format(COI), markersize=12, capsize=3, zorder=10)
 # ax.plot(CF_time_points,100*np.ones(CF_time_points.shape),'k--')
 # ax.set_xlabel("Time (min)",fontsize=plt_widget.fsize)
-# ax.set_ylabel(r"$\%\Delta$ in fluorescence  ",fontsize=plt_widget.fsize)
-# plt.legend(frameon=False,fontsize=plt_widget.fsize,loc="upper right")
+# ax.set_ylabel(r"$\%\Delta$  area ",fontsize=plt_widget.fsize)
+# # plt.legend(frameon=False,fontsize=plt_widget.fsize,loc="upper right")
 # # ax.set_ylim([70,300])
-# plt.tight_layout()
+# # plt.tight_layout()
 # # # plt_widget.SaveFigures("{}/Clavet_Fournier_2023_fit_{}".format("./", ""))
 # plt.legend(frameon=False)
 # plt.show()
@@ -313,13 +312,13 @@ def get_CF_2023_4_data():
 # CF_cLTP_psd = CF_PSD.loc[CF_PSD['condition'] == "cLTP"].dropna()
 # CF_time_points = CF_PSD["timepoint"].unique()
 # COI = "GluA2_Area"
-#
+
 # cLTP_means = CF_cLTP_psd.groupby('timepoint')[[COI]].mean().to_numpy()
 # cLTP_means /= cLTP_means[0]
 # cLTP_stds = CF_cLTP_psd.groupby('timepoint')[[COI]].std().to_numpy()
 # cLTP_counts = CF_cLTP_psd.groupby('timepoint')[[COI]].count().to_numpy()
 # cLTP_sems = cLTP_stds/cLTP_counts
-#
+
 # cont_means = CF_control_psd.groupby('timepoint')[[COI]].mean().to_numpy()
 #     # breakpoint()
 # cont_means /= cont_means[0]
@@ -344,6 +343,7 @@ def get_CF_2023_4_data():
 #     ax[i//2,i%2].legend()
 # plt.show()
 # plt_widget = SNSPlottingWidget()
+
 # save_it = 0
 # y="GluA2_Area"
 # hue="condition"

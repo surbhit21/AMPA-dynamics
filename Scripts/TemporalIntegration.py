@@ -10,7 +10,8 @@ import shutil
 
 
 subunit= AMPA_model.subunit
-baseline_param_file = "./ModelParamsTemporal{}.json".format(subunit)
+baseline_param_file = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                   "ModelParamsTemporal{}.json".format(subunit))
 dt = 0.02
 P_s_init, P_c_init, P_spine_init, SP_model1 = RunModelWithFile(baseline_param_file)
 y0 = np.vstack((np.vstack((P_c_init, P_s_init)), P_spine_init))
@@ -91,7 +92,7 @@ def AMPATimeDynamics(t, y, Dc, Ds, Vp, lamdac, lamdas, alpha, beta, eta, omega, 
                   + Dc[1:-1] * np.diff(pc, 2) / dx**2 - Vp[1:-1] * np.diff(pc, 1)[1:] / dx
     dpcdt[-1] = Endocytosis(ps[-1], alpha[-1]) - Exocytosis(pc[-1], beta[-1]) - Degrdation(pc[-1], lamdac) \
                 + (Dc[-1]/dx**2) * pc[-2] - (Dc[-1]/dx**2 + Vp[-1]**2/Dc[-1] + Vp[-1]/dx)*pc[-1]
-
+    # breakpoint()
     dpsdt[0] = Exocytosis(pc[0], beta[0]) - Endocytosis(ps[0], alpha[0]) - Degrdation(ps[0], lamdas) \
                - SpineExchange(ps[0], pspine[0], eta[0], omega,gamma[0]) + (Ds[0]/dx**2)*ps[1] - \
                 (Ds[0]/dx**2)*ps[0] + Jsin/dx
@@ -110,7 +111,7 @@ def AMPATimeDynamics(t, y, Dc, Ds, Vp, lamdac, lamdas, alpha, beta, eta, omega, 
 
 def AdaptiveAMPATimeDynamics(t, y, Dc, Ds, Vp, lamdac, lamdas, alpha, beta_0,beta_mat, eta, omega, gamma, Jcin, Jsin, dx):
     # Getting the current value of exocytosis rate
-    beta = beta_0*beta_mat[:,int(t/dt)]/beta_mat[:,0]
+    beta = beta_0*(beta_mat[:,int(t/dt)]/beta_mat[:,0])
 
     # calculating the time derivative
     dydt = AMPATimeDynamics(t, y, Dc, Ds, Vp, lamdac, lamdas, alpha, beta, eta, omega, gamma, Jcin, Jsin, dx)
@@ -203,7 +204,7 @@ def savesimsettings(num_steps,type, time_steps, protocol_file,
     protocol_details["num_steps"] = num_steps
     protocol_details["time_steps"] = time_steps
     protocol_details["stim locations"] = locations
-    protocol_details["unstim locations"] = locations
+    protocol_details["unstim locations"] = unstim_locations
     # protocol_details["x_span"] = x_span
 
     protocol_details["dc_factors"] = dc_factors

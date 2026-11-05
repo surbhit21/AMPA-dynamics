@@ -33,7 +33,7 @@ conditions = [ "TTX", "Untreated"]#,"control" ]
 root_inp = "/Users/surbhitwagle/Desktop/Surbhit/Work/PhD/2020/PhD/MPIBR/PhD-Project/Experimental_collab/Max-Kracht/"
 spine_cell_folder = {
     "GluA2":{
-        "control":"{}GluA2/Control/stretches/retake".format(root_inp),
+        "control":"{}retake".format(root_inp),
         "TTX":"{}GluA2/TTX/New_data/stretches/TTX".format(root_inp),
         "Untreated":"{}GluA2/TTX/New_data/stretches/PBS".format(root_inp)
     },
